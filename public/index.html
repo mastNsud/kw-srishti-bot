@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KW Srishti – Luxury Within Your Reach | Raj Nagar Extension, Ghaziabad</title>
+<meta name="description" content="KW Srishti — GDA approved luxury apartments on NH-58, Raj Nagar Extension, Ghaziabad. 1BHK to 4BHK Penthouses. 40+ amenities. Book your site visit today.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#C9A84C;--gold-l:#E8C96A;--dark:#0F0E0C;--dark2:#1A1915;--dark3:#252318;--cream:#F5F0E8;--muted:#8A8675;--white:#fff}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);overflow-x:hidden}
+
+/* HERO */
+.hero{min-height:100vh;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 30%,rgba(201,168,76,.13) 0%,transparent 70%),linear-gradient(160deg,#0F0E0C 0%,#1C1A10 50%,#0F0E0C 100%);z-index:0}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.04) 1px,transparent 1px);background-size:60px 60px;z-index:0}
+.hero-content{position:relative;z-index:1;max-width:820px}
+.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(201,168,76,.4);padding:6px 18px;border-radius:100px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:2rem;animation:fadeDown .8s ease both}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(3rem,8vw,6rem);line-height:1.05;font-weight:700;animation:fadeUp .9s .2s ease both}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero-sub{margin-top:1.2rem;font-size:1.1rem;color:var(--muted);animation:fadeUp .9s .4s ease both}
+.hero-addr{margin-top:.5rem;font-size:.82rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);opacity:.7;animation:fadeUp .9s .5s ease both}
+.hero-ctas{margin-top:2.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;animation:fadeUp .9s .6s ease both}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-l));color:var(--dark);padding:14px 32px;border-radius:4px;font-weight:600;font-size:.9rem;cursor:pointer;border:none;text-decoration:none;display:inline-block;transition:transform .2s,box-shadow .2s}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,168,76,.35)}
+.btn-ghost{background:transparent;color:var(--cream);padding:14px 32px;border-radius:4px;font-weight:500;font-size:.9rem;cursor:pointer;border:1px solid rgba(245,240,232,.25);text-decoration:none;display:inline-block;transition:border-color .2s,color .2s}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.hero-stats{margin-top:4rem;display:flex;gap:3rem;justify-content:center;flex-wrap:wrap;animation:fadeUp .9s .8s ease both}
+.stat-num{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--gold)}
+.stat-lbl{font-size:.72rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;animation:fadeUp 1s 1.2s ease both;z-index:1}
+.scroll-hint span{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--gold),transparent);animation:pulse 2s infinite}
+
+/* SECTIONS */
+section{padding:5rem 2rem}
+.sec-label{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.2rem);line-height:1.15;font-weight:600}
+
+/* FEATURES */
+.features{background:var(--dark2)}
+.f-inner{max-width:1100px;margin:0 auto}
+.f-header{text-align:center;margin-bottom:4rem}
+.f-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.1)}
+.f-card{background:var(--dark2);padding:2rem;transition:background .3s;position:relative;overflow:hidden}
+.f-card:hover{background:var(--dark3)}
+.f-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity .3s}
+.f-card:hover::before{opacity:1}
+.f-icon{font-size:1.5rem;margin-bottom:1rem}
+.f-title{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:.5rem}
+.f-desc{font-size:.83rem;color:var(--muted);line-height:1.7}
+
+/* PLANS */
+.plans{background:var(--dark)}
+.p-inner{max-width:1100px;margin:0 auto}
+.p-header{text-align:center;margin-bottom:3rem}
+.tabs{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:3rem}
+.tab{padding:8px 20px;border-radius:100px;font-size:.78rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:1px solid rgba(201,168,76,.2);color:var(--muted);background:transparent;transition:all .2s}
+.tab.on,.tab:hover{background:var(--gold);color:var(--dark);border-color:var(--gold)}
+.p-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.5rem}
+.p-card{border:1px solid rgba(201,168,76,.15);padding:1.8rem;border-radius:2px;display:none;transition:border-color .3s,transform .3s}
+.p-card.show{display:block}
+.p-card:hover{border-color:rgba(201,168,76,.5);transform:translateY(-4px)}
+.p-type{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem}
+.p-name{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:1rem}
+.p-row{font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.p-row:last-of-type{border-bottom:none}
+.p-row span:last-child{color:var(--cream)}
+
+/* AMENITIES */
+.amen{background:var(--dark2)}
+.a-inner{max-width:1100px;margin:0 auto}
+.a-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:1rem;margin-top:3rem}
+.a-pill{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid rgba(201,168,76,.12);border-radius:2px;font-size:.8rem;color:var(--muted);transition:all .2s}
+.a-pill:hover{border-color:var(--gold);color:var(--cream)}
+.dot{width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0}
+
+/* LOCATION */
+.location{background:var(--dark)}
+.l-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start}
+.l-points{display:flex;flex-direction:column;gap:.8rem;margin-top:2rem}
+.l-point{display:flex;gap:1rem;padding:1rem;border-left:2px solid rgba(201,168,76,.2);transition:border-color .2s}
+.l-point:hover{border-color:var(--gold)}
+.l-point strong{display:block;font-size:.88rem;margin-bottom:2px}
+.l-point span{font-size:.78rem;color:var(--muted)}
+.map-box{background:var(--dark2);border:1px solid rgba(201,168,76,.15);border-radius:4px;height:360px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;color:var(--muted);font-size:.85rem}
+
+/* BANKS */
+.banks{background:var(--dark2);text-align:center;padding:3rem 2rem}
+.banks p{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:1.5rem}
+.bank-row{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+.bank{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.1);padding:7px 14px;border-radius:4px;font-size:.72rem;font-weight:600;letter-spacing:1px;color:var(--muted)}
+
+/* AWARDS */
+.awards{background:var(--dark);text-align:center;padding:2.5rem 2rem;border-top:1px solid rgba(201,168,76,.1)}
+.aw-items{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;margin-top:1.2rem}
+.aw-item{font-size:.75rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold)}
+
+/* FOOTER */
+footer{background:#080807;border-top:1px solid rgba(201,168,76,.1);padding:3rem 2rem;text-align:center}
+.f-logo{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--gold);letter-spacing:2px}
+.f-tag{font-size:.72rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:.3rem}
+.f-contact{margin-top:1.5rem;font-size:.83rem;color:var(--muted)}
+.f-contact a{color:var(--gold);text-decoration:none}
+.f-legal{margin-top:1rem;font-size:.7rem;color:rgba(138,134,117,.45);max-width:700px;margin-inline:auto;line-height:1.8}
+
+/* ── CHATBOT ── */
+.chat-fab{position:fixed;bottom:2rem;right:2rem;z-index:1000;width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-l));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.4rem;box-shadow:0 8px 32px rgba(201,168,76,.45);transition:transform .3s;animation:glow 3s infinite}
+.chat-fab:hover{transform:scale(1.08)}
+.chat-fab .nbadge{position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#e53535;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+.chat-win{position:fixed;bottom:7rem;right:2rem;z-index:1000;width:380px;max-width:calc(100vw - 1rem);height:580px;background:var(--dark2);border:1px solid rgba(201,168,76,.22);border-radius:14px;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.75);transform:translateY(20px) scale(.96);opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.175,.885,.32,1.275);overflow:hidden}
+.chat-win.open{transform:none;opacity:1;pointer-events:all}
+
+.chat-hdr{background:linear-gradient(135deg,#1C1A10,#2A2510);border-bottom:1px solid rgba(201,168,76,.15);padding:1rem 1.2rem;display:flex;align-items:center;gap:12px}
+.chat-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-l));display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.chat-hdr-name{font-weight:600;font-size:.93rem;color:var(--cream)}
+.chat-hdr-status{font-size:.7rem;color:#4caf50;display:flex;align-items:center;gap:4px}
+.chat-hdr-status::before{content:'';width:6px;height:6px;background:#4caf50;border-radius:50%}
+.chat-close{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem}
+.chat-close:hover{color:var(--cream)}
+
+.chat-msgs{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.8rem;scroll-behavior:smooth}
+.chat-msgs::-webkit-scrollbar{width:3px}
+.chat-msgs::-webkit-scrollbar-thumb{background:rgba(201,168,76,.2);border-radius:2px}
+
+.msg{max-width:86%;display:flex;flex-direction:column;gap:4px;animation:msgIn .35s ease}
+.msg.bot{align-self:flex-start}.msg.user{align-self:flex-end}
+.bubble{padding:10px 14px;border-radius:12px;font-size:.84rem;line-height:1.58}
+.msg.bot .bubble{background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.1);color:var(--cream);border-radius:4px 12px 12px 12px}
+.msg.user .bubble{background:linear-gradient(135deg,var(--gold),var(--gold-l));color:var(--dark);font-weight:500;border-radius:12px 4px 12px 12px}
+.msg-time{font-size:.62rem;color:var(--muted)}
+.msg.user .msg-time{align-self:flex-end}
+
+.qrs{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.qr{padding:5px 11px;border-radius:100px;border:1px solid rgba(201,168,76,.3);background:transparent;color:var(--gold);font-size:.73rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.qr:hover{background:var(--gold);color:var(--dark)}
+.qr:disabled{opacity:.3;pointer-events:none}
+
+.typing{display:flex;gap:4px;align-items:center;padding:10px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.1);border-radius:4px 12px 12px 12px;width:fit-content;animation:msgIn .3s ease}
+.t-dot{width:6px;height:6px;background:var(--gold);border-radius:50%;animation:bounce 1.2s infinite}
+.t-dot:nth-child(2){animation-delay:.2s}.t-dot:nth-child(3){animation-delay:.4s}
+
+.chat-inp-area{border-top:1px solid rgba(201,168,76,.1);padding:.8rem 1rem;display:flex;gap:8px;align-items:flex-end;background:var(--dark3)}
+.chat-inp{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.15);border-radius:8px;padding:10px 14px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:.84rem;resize:none;max-height:80px;outline:none;transition:border-color .2s}
+.chat-inp:focus{border-color:rgba(201,168,76,.4)}
+.chat-inp::placeholder{color:var(--muted)}
+.send-btn{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-l));border:none;cursor:pointer;flex-shrink:0;font-size:.9rem;transition:transform .2s}
+.send-btn:hover{transform:scale(1.1)}
+
+/* ANIMATIONS */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes glow{0%,100%{box-shadow:0 8px 32px rgba(201,168,76,.45)}50%{box-shadow:0 8px 48px rgba(201,168,76,.7),0 0 0 8px rgba(201,168,76,.1)}}
+@media(max-width:768px){.l-inner{grid-template-columns:1fr}.hero-stats{gap:1.5rem}}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div><div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="badge">✦ KW Group · For Touching Heights</div>
+    <h1>Luxury within<br><em>your Reach</em></h1>
+    <p class="hero-sub">Redefining residential living at Raj Nagar Extension, Ghaziabad</p>
+    <p class="hero-addr">NH-58 · Raj Nagar Extn. · Ghaziabad · GDA Approved · Freehold</p>
+    <div class="hero-ctas">
+      <a href="#plans" class="btn-gold">Explore Floor Plans</a>
+      <button class="btn-ghost" onclick="openChat()">Talk to Priya – Our AI Advisor</button>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-num">80%</div><div class="stat-lbl">Green Area</div></div>
+      <div><div class="stat-num">40+</div><div class="stat-lbl">Amenities</div></div>
+      <div><div class="stat-num">1–4</div><div class="stat-lbl">BHK Configs</div></div>
+      <div><div class="stat-num">24×7</div><div class="stat-lbl">Power & Water</div></div>
+    </div>
+  </div>
+  <div class="scroll-hint"><span>Discover</span><div class="scroll-line"></div></div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="f-inner">
+    <div class="f-header"><p class="sec-label">Why KW Srishti</p><h2 class="sec-title">Built for Modern Living</h2></div>
+    <div class="f-grid">
+      <div class="f-card"><div class="f-icon">🏛️</div><h3 class="f-title">Earthquake Resistant RCC</h3><p class="f-desc">Framed construction engineered to withstand seismic activity — your family's safety for generations.</p></div>
+      <div class="f-card"><div class="f-icon">🌿</div><h3 class="f-title">80% Open Green Area</h3><p class="f-desc">Lush landscaped gardens, jogging tracks and manicured parks spread across most of the campus.</p></div>
+      <div class="f-card"><div class="f-icon">🔒</div><h3 class="f-title">Round-the-Clock Security</h3><p class="f-desc">Manned security with CCTV surveillance throughout the complex for complete peace of mind.</p></div>
+      <div class="f-card"><div class="f-icon">💧</div><h3 class="f-title">24-Hr Water & Power</h3><p class="f-desc">Uninterrupted water supply, RO purifier in every kitchen, and complete power backup.</p></div>
+      <div class="f-card"><div class="f-icon">🎸</div><h3 class="f-title">Guitar-Shaped Pool</h3><p class="f-desc">Signature swimming pool with guitar-shaped deck, kids' pool, and Jacuzzi — a true resort experience.</p></div>
+      <div class="f-card"><div class="f-icon">🏬</div><h3 class="f-title">Shopping Complex Inside</h3><p class="f-desc">Retail shops, nursery school and club facilities within the campus — everything at your doorstep.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FLOOR PLANS -->
+<section class="plans" id="plans">
+  <div class="p-inner">
+    <div class="p-header"><p class="sec-label">Floor Plans</p><h2 class="sec-title">Find Your Perfect Home</h2></div>
+    <div class="tabs">
+      <button class="tab on" onclick="fp('all',this)">All</button>
+      <button class="tab" onclick="fp('1bhk',this)">1 BHK</button>
+      <button class="tab" onclick="fp('2bhk',this)">2 BHK</button>
+      <button class="tab" onclick="fp('3bhk',this)">3 BHK</button>
+      <button class="tab" onclick="fp('ph',this)">Penthouse</button>
+    </div>
+    <div class="p-grid">
+      <div class="p-card show" data-t="1bhk"><p class="p-type">Tower A · 1 BHK</p><h3 class="p-name">Studio Classic</h3><div class="p-row"><span>Super Built-up</span><span>740 sq.ft.</span></div><div class="p-row"><span>Carpet Area</span><span>37.73 sq.m.</span></div><div class="p-row"><span>Balconies</span><span>2</span></div></div>
+      <div class="p-card show" data-t="1bhk"><p class="p-type">Tower A · 1 BHK+Study</p><h3 class="p-name">Studio Plus</h3><div class="p-row"><span>Super Built-up</span><span>875 sq.ft.</span></div><div class="p-row"><span>Carpet Area</span><span>45.92 sq.m.</span></div><div class="p-row"><span>Study Room</span><span>✓</span></div></div>
+      <div class="p-card show" data-t="2bhk"><p class="p-type">Tower B · 2 BHK</p><h3 class="p-name">Comfort Duo</h3><div class="p-row"><span>Super Built-up</span><span>985 sq.ft.</span></div><div class="p-row"><span>Carpet Area</span><span>53.61 sq.m.</span></div><div class="p-row"><span>Bathrooms</span><span>2</span></div></div>
+      <div class="p-card show" data-t="2bhk"><p class="p-type">Tower C · 2 BHK</p><h3 class="p-name">Comfort Grand</h3><div class="p-row"><span>Super Built-up</span><span>1,000 sq.ft.</span></div><div class="p-row"><span>Carpet Area</span><span>54.88 sq.m.</span></div><div class="p-row"><span>Balconies</span><span>2</span></div></div>
+      <div class="p-card show" data-t="2bhk"><p class="p-type">Tower I · 2 BHK+Study</p><h3 class="p-name">Scholar Suite</h3><div class="p-row"><span>Super Built-up</span><span>1,220–1,310 sq.ft.</span></div><div class="p-row"><span>Carpet Area</span><span>66–68 sq.m.</span></div><div class="p-row"><span>Study Room</span><span>✓</span></div></div>
+      <div class="p-card show" data-t="3bhk"><p class="p-type">Tower H · 3 BHK</p><h3 class="p-name">Elite Trio</h3><div class="p-row"><span>Super Built-up</span><span>1,485 sq.ft.</span></div><div class="p-row"><span>Carpet Area</span><span>81.77 sq.m.</span></div><div class="p-row"><span>Bathrooms</span><span>3</span></div></div>
+      <div class="p-card show" data-t="3bhk"><p class="p-type">Tower K · 3 BHK</p><h3 class="p-name">Elite Grand</h3><div class="p-row"><span>Super Built-up</span><span>1,500 sq.ft.</span></div><div class="p-row"><span>Carpet Area</span><span>81.33 sq.m.</span></div><div class="p-row"><span>Balconies</span><span>5</span></div></div>
+      <div class="p-card show" data-t="ph"><p class="p-type">Tower D · Penthouse</p><h3 class="p-name">Sky Residence D</h3><div class="p-row"><span>Super Built-up</span><span>1,900 sq.ft.</span></div><div class="p-row"><span>Config</span><span>3BHK 4T+Store</span></div><div class="p-row"><span>Terrace</span><span>Private</span></div></div>
+      <div class="p-card show" data-t="ph"><p class="p-type">Tower E · Penthouse</p><h3 class="p-name">Sky Residence E</h3><div class="p-row"><span>Super Built-up</span><span>2,000 sq.ft.</span></div><div class="p-row"><span>Config</span><span>4BHK 4T+Store</span></div><div class="p-row"><span>Terraces</span><span>2</span></div></div>
+      <div class="p-card show" data-t="ph"><p class="p-type">Tower F&G · Penthouse</p><h3 class="p-name">Sky Residence F&G</h3><div class="p-row"><span>Super Built-up</span><span>2,270 sq.ft.</span></div><div class="p-row"><span>Config</span><span>3BHK 4T+Study</span></div><div class="p-row"><span>Terraces</span><span>2</span></div></div>
+      <div class="p-card show" data-t="ph"><p class="p-type">Tower J · Penthouse</p><h3 class="p-name">Sky Residence J</h3><div class="p-row"><span>Super Built-up</span><span>2,650 sq.ft.</span></div><div class="p-row"><span>Config</span><span>4BHK 4T+Store</span></div><div class="p-row"><span>Terraces</span><span>2</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- AMENITIES -->
+<section class="amen">
+  <div class="a-inner">
+    <p class="sec-label">Lifestyle</p><h2 class="sec-title">40+ World-Class Amenities</h2>
+    <div class="a-grid">
+      <div class="a-pill"><span class="dot"></span>Swimming Pool</div><div class="a-pill"><span class="dot"></span>Kids Pool & Jacuzzi</div>
+      <div class="a-pill"><span class="dot"></span>Gymnasium</div><div class="a-pill"><span class="dot"></span>Amphi Theatre</div>
+      <div class="a-pill"><span class="dot"></span>Musical Fountain</div><div class="a-pill"><span class="dot"></span>Lawn Tennis</div>
+      <div class="a-pill"><span class="dot"></span>Badminton Court</div><div class="a-pill"><span class="dot"></span>Cricket Net</div>
+      <div class="a-pill"><span class="dot"></span>Skating Rink</div><div class="a-pill"><span class="dot"></span>Community Hall</div>
+      <div class="a-pill"><span class="dot"></span>Billiards Room</div><div class="a-pill"><span class="dot"></span>Table Tennis</div>
+      <div class="a-pill"><span class="dot"></span>Steam & Sauna Bath</div><div class="a-pill"><span class="dot"></span>TV Lounge</div>
+      <div class="a-pill"><span class="dot"></span>Nursery School</div><div class="a-pill"><span class="dot"></span>Shopping Complex</div>
+      <div class="a-pill"><span class="dot"></span>Children's Park</div><div class="a-pill"><span class="dot"></span>Jogging Track</div>
+      <div class="a-pill"><span class="dot"></span>Party Lawn</div><div class="a-pill"><span class="dot"></span>Landscaped Garden</div>
+      <div class="a-pill"><span class="dot"></span>Water Falls</div><div class="a-pill"><span class="dot"></span>Rain Water Harvesting</div>
+      <div class="a-pill"><span class="dot"></span>Fire Fighting System</div><div class="a-pill"><span class="dot"></span>Internet in Every Flat</div>
+      <div class="a-pill"><span class="dot"></span>Creche</div><div class="a-pill"><span class="dot"></span>STP Plant</div>
+      <div class="a-pill"><span class="dot"></span>WTP with Softener</div><div class="a-pill"><span class="dot"></span>Lavish Entrance Gate</div>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section class="location">
+  <div class="l-inner">
+    <div>
+      <p class="sec-label">Connectivity</p><h2 class="sec-title">Perfectly Located</h2>
+      <div class="l-points">
+        <div class="l-point"><span style="font-size:1.2rem">🛣️</span><div><strong>NH-58 Meerut Bypass</strong><span>Direct access on the national highway</span></div></div>
+        <div class="l-point"><span style="font-size:1.2rem">✈️</span><div><strong>Hindon Air Base Nearby</strong><span>Close proximity to Hindon civilian airport</span></div></div>
+        <div class="l-point"><span style="font-size:1.2rem">🚇</span><div><strong>Proposed Metro Connectivity</strong><span>Upcoming metro station planned for the area</span></div></div>
+        <div class="l-point"><span style="font-size:1.2rem">🏙️</span><div><strong>Delhi NCR Access</strong><span>Via Vasundhara, Indirapuram & GT Road</span></div></div>
+      </div>
+    </div>
+    <div class="map-box"><span style="font-size:2.5rem">📍</span><strong>KW Srishti, NH-58</strong><span>Raj Nagar Extension, Ghaziabad</span></div>
+  </div>
+</section>
+
+<!-- BANKS -->
+<div class="banks">
+  <p>Home loans approved by leading institutions</p>
+  <div class="bank-row">
+    <div class="bank">SBI</div><div class="bank">HDFC</div><div class="bank">ICICI</div><div class="bank">Axis Bank</div>
+    <div class="bank">PNB Housing</div><div class="bank">LIC HFL</div><div class="bank">DHFL</div><div class="bank">Tata Capital</div>
+  </div>
+</div>
+
+<!-- AWARDS -->
+<div class="awards">
+  <p class="sec-label">Recognition</p>
+  <div class="aw-items">
+    <div class="aw-item">🏆 Best Developer 2011</div>
+    <div class="aw-item">🏆 Best Housing Design 2012</div>
+    <div class="aw-item">🏆 Best Brand 2013</div>
+    <div class="aw-item">✦ CREDAI Member</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-logo">KW SRISHTI</div>
+  <div class="f-tag">For Touching Heights · K World Estate Pvt. Ltd.</div>
+  <div class="f-contact">📞 <a href="tel:+919310908888">+91-9310 90 8888</a> &nbsp;|&nbsp; ✉️ <a href="mailto:saleskws@kwgroup.in">saleskws@kwgroup.in</a> &nbsp;|&nbsp; 🌐 <a href="#">www.kwshrishti.com</a></div>
+  <div class="f-legal">Disclaimer: This page is purely conceptual and not a legal offering. Specifications and layouts in BBA shall be final. The developer reserves the right to amend/alter the area, layout, plans, elevations, specifications and amenities.</div>
+</footer>
+
+<!-- CHAT FAB -->
+<button class="chat-fab" id="chatFab" onclick="openChat()" title="Chat with Priya">
+  💬 <span class="nbadge" id="nb">1</span>
+</button>
+
+<!-- CHAT WINDOW -->
+<div class="chat-win" id="chatWin">
+  <div class="chat-hdr">
+    <div class="chat-av">🏠</div>
+    <div>
+      <div class="chat-hdr-name">Priya · KW Srishti Advisor</div>
+      <div class="chat-hdr-status">Online · Replies instantly</div>
+    </div>
+    <button class="chat-close" onclick="closeChat()">✕</button>
+  </div>
+  <div class="chat-msgs" id="chatMsgs"></div>
+  <div class="chat-inp-area">
+    <textarea class="chat-inp" id="chatInp" placeholder="Type your message…" rows="1" onkeydown="onKey(event)"></textarea>
+    <button class="send-btn" onclick="send()">➤</button>
+  </div>
+</div>
+
+<script>
+// ── UTM UTILS ──
+function getUTM(){const p=new URLSearchParams(location.search);return{utm_source:p.get('utm_source'),utm_campaign:p.get('utm_campaign'),source:p.get('source')||'website'}}
+
+// ── STATE ──
+let SID=null,chatStarted=false,isOpen=false;
+
+// ── FLOOR PLAN FILTER ──
+function fp(t,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.p-card').forEach(c=>c.classList.toggle('show',t==='all'||c.dataset.t===t));
+}
+
+// ── CHAT OPEN/CLOSE ──
+function openChat(){
+  isOpen=true;
+  document.getElementById('chatWin').classList.add('open');
+  document.getElementById('nb').style.display='none';
+  if(!chatStarted){chatStarted=true;startChat();}
+}
+function closeChat(){isOpen=false;document.getElementById('chatWin').classList.remove('open')}
+
+async function startChat(){
+  const r=await api('/api/chat/start',{meta:getUTM()});
+  if(r.session_id){SID=r.session_id;localStorage.setItem('kw_sid',SID);}
+  // Send empty trigger to get greeting
+  await sendMsg('','');
+}
+
+function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
+
+async function send(){
+  const inp=document.getElementById('chatInp');
+  const txt=inp.value.trim();
+  if(!txt)return;
+  inp.value='';
+  addUserMsg(txt);
+  const r=await api('/api/chat/message',{session_id:SID,message:txt});
+  handleBotResponse(r);
+}
+
+async function sendQR(val,btn){
+  document.querySelectorAll('.qr').forEach(b=>{b.disabled=true;b.style.opacity='.35'});
+  addUserMsg(val);
+  const r=await api('/api/chat/message',{session_id:SID,quick_reply:val});
+  handleBotResponse(r);
+}
+
+async function sendMsg(msg,qr){
+  const r=await api('/api/chat/message',{session_id:SID,message:msg,quick_reply:qr||undefined});
+  handleBotResponse(r);
+}
+
+function handleBotResponse(r){
+  if(!r)return;
+  showTyping();
+  const delay=Math.min(600+r.message.length*8,1800);
+  setTimeout(()=>{
+    hideTyping();
+    const md=r.message.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    let html=`<div class="bubble">${md}</div><span class="msg-time">${now()}</span>`;
+    if(r.quick_replies?.length){
+      html+=`<div class="qrs">${r.quick_replies.map(q=>`<button class="qr" onclick="sendQR('${q}',this)">${q}</button>`).join('')}</div>`;
+    }
+    addBotMsg(html);
+  },delay);
+}
+
+let typingEl=null;
+function showTyping(){
+  const c=document.getElementById('chatMsgs');
+  typingEl=document.createElement('div');typingEl.className='msg bot';
+  typingEl.innerHTML='<div class="typing"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>';
+  c.appendChild(typingEl);c.scrollTop=c.scrollHeight;
+}
+function hideTyping(){if(typingEl){typingEl.remove();typingEl=null;}}
+
+function addBotMsg(html){
+  const c=document.getElementById('chatMsgs');
+  const d=document.createElement('div');d.className='msg bot';d.innerHTML=html;
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+function addUserMsg(txt){
+  const c=document.getElementById('chatMsgs');
+  const d=document.createElement('div');d.className='msg user';
+  d.innerHTML=`<div class="bubble">${txt}</div><span class="msg-time">${now()}</span>`;
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+
+async function api(url,body){
+  try{
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    return await r.json();
+  }catch(e){return null;}
+}
+
+function now(){return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}
+
+// Restore session
+SID=localStorage.getItem('kw_sid');
+</script>
+</body>
+</html>
