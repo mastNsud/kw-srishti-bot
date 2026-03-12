@@ -1,0 +1,2 @@
+[phases.setup]
+nixpkgs = ["nodejs_22", "npm-9_x", "python3", "stdenv", "gnumake", "gcc"]
