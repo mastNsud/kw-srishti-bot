@@ -1,12 +1,15 @@
 [build]
 builder = "nixpacks"
 
-[deploy]
-startCommand = "node src/server.js"
-healthcheckPath = "/health"
-healthcheckTimeout = 30
-restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
+[build.nixpacks]
+packages = [
+    "python3",
+    "stdenv",
+    "git",
+    "gnumake",
+    "gcc"
+]
 
-[[volumes]]
-mountPath = "/app/data"
+[deploy]
+startCommand = "npm start"
+restartPolicyType = "on_failure"
