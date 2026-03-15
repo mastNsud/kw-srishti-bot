@@ -5,14 +5,17 @@ const fs = require('fs');
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../data/leads.db');
 let sqlDb;
 
-// ─── Save database to disk after every write ────────────────────────────────
+// ─── Persist DB to disk ───────────────────────────────────────────────────────
 function saveDB() {
-  const data = sqlDb.export();
-  fs.writeFileSync(DB_PATH, Buffer.from(data));
+  try {
+    const data = sqlDb.export();
+    fs.writeFileSync(DB_PATH, Buffer.from(data));
+  } catch (e) {
+    console.error('DB save error:', e);
+  }
 }
 
-// ─── Compatibility shim: makes sql.js look like better-sqlite3 ───────────────
-//     so all route files can stay exactly as they are.
+// ─── Compatibility shim: mirrors the better-sqlite3 API ──────────────────────
 class Statement {
   constructor(sql) {
     this._sql = sql;
@@ -22,15 +25,16 @@ class Statement {
     const params = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
     sqlDb.run(this._sql, params);
     saveDB();
-    const row = sqlDb.exec('SELECT last_insert_rowid() AS id')[0];
-    return { lastInsertRowid: row ? row.values[0][0] : null };
+    const res = sqlDb.exec('SELECT last_insert_rowid() as id');
+    return { lastInsertRowid: res[0] ? res[0].values[0][0] : null };
   }
 
   get(...args) {
     const params = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
     const stmt = sqlDb.prepare(this._sql);
     stmt.bind(params);
-    const result = stmt.step() ? stmt.getAsObject() : undefined;
+    const exists = stmt.step();
+    const result = exists ? stmt.getAsObject() : undefined;
     stmt.free();
     return result;
   }
@@ -48,25 +52,28 @@ class Statement {
 
 class DBWrapper {
   prepare(sql) { return new Statement(sql); }
-  exec(sql)    { sqlDb.run(sql); saveDB(); }
+  // sql.js uses exec() for multi-statement SQL strings
+  exec(sql)    { sqlDb.exec(sql); saveDB(); }
 }
 
 const dbWrapper = new DBWrapper();
 
-// ─── Init ────────────────────────────────────────────────────────────────────
+// ─── Initialise ───────────────────────────────────────────────────────────────
 async function initDB() {
   const SQL = await initSqlJs();
 
   const dbDir = path.dirname(DB_PATH);
   if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
 
+  // Load existing DB file or create fresh one
   if (fs.existsSync(DB_PATH)) {
     sqlDb = new SQL.Database(fs.readFileSync(DB_PATH));
   } else {
     sqlDb = new SQL.Database();
   }
 
-  sqlDb.run(`
+  // sql.js exec() handles multiple statements separated by semicolons
+  sqlDb.exec(`
     CREATE TABLE IF NOT EXISTS leads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       session_id TEXT UNIQUE NOT NULL,
