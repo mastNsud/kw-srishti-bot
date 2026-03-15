@@ -17,16 +17,16 @@ function startTelegramBot() {
   bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     const sid = `tg_${chatId}`;
-    const session = getOrCreateSession(sid);
+    const session = await getOrCreateSession(sid);
 
     // Reset session for fresh start
     session.step = 0;
     session.leadData = {};
     session.history = [];
-    saveSession(sid, session);
+    await saveSession(sid, session);
 
     const result = await buildBotResponse(session, '', {});
-    saveSession(sid, session);
+    await saveSession(sid, session);
     sendReply(bot, chatId, result);
   });
 
@@ -36,10 +36,10 @@ function startTelegramBot() {
 
     const chatId = msg.chat.id;
     const sid = `tg_${chatId}`;
-    const session = getOrCreateSession(sid);
+    const session = await getOrCreateSession(sid);
 
     const result = await buildBotResponse(session, msg.text, {});
-    saveSession(sid, session);
+    await saveSession(sid, session);
     sendReply(bot, chatId, result);
   });
 
