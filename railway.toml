@@ -1,14 +1,5 @@
 [build]
-builder = "nixpacks"
-
-[build.nixpacks]
-packages = [
-    "python3",
-    "stdenv",
-    "git",
-    "gnumake",
-    "gcc"
-]
+nixpkgs = ["python3", "stdenv", "git", "gnumake", "gcc"]
 
 [deploy]
 startCommand = "npm start"
