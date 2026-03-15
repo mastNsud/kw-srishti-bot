@@ -1,5 +1,4 @@
 [build]
-nixpkgs = ["python3", "stdenv", "git", "gnumake", "gcc"]
 
 [deploy]
 startCommand = "npm start"

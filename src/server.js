@@ -44,8 +44,13 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-initDB();
-app.listen(PORT, () => {
-  console.log(`🚀 KW Srishti Bot running on port ${PORT}`);
-  startTelegramBot();
-});
+async function start() {
+  await initDB();
+  app.listen(PORT, () => {
+    console.log(`🚀 KW Srishti Bot running on port ${PORT}`);
+    startTelegramBot();
+  });
+}
+
+start();
+
