@@ -11,7 +11,7 @@ router.post('/message', async (req, res) => {
   try {
     const { session_id, message, quick_reply, meta = {} } = req.body;
     const sid = session_id || uuidv4();
-    const session = getOrCreateSession(sid);
+    const session = await getOrCreateSession(sid);
 
     // Track UTM on first message
     if (meta.utm_source && !session.utm_source) {
@@ -22,17 +22,17 @@ router.post('/message', async (req, res) => {
 
     // Log event
     const db = getDB();
-    db.prepare('INSERT INTO events (session_id, event_type, payload) VALUES (?,?,?)')
+    await db.prepare('INSERT INTO events (session_id, event_type, payload) VALUES ($1,$2,$3)')
       .run(sid, 'message', JSON.stringify({ message, quick_reply }));
 
     const userInput = quick_reply || message || '';
     const result = await buildBotResponse(session, userInput, req);
 
-    saveSession(sid, session);
+    await saveSession(sid, session);
 
     // If lead data is complete, upsert to leads table
     if (session.leadData?.phone) {
-      upsertLead(sid, session, req);
+      await upsertLead(sid, session, req);
     }
 
     res.json({ session_id: sid, ...result });
@@ -43,32 +43,32 @@ router.post('/message', async (req, res) => {
 });
 
 // POST /api/chat/start
-router.post('/start', (req, res) => {
+router.post('/start', async (req, res) => {
   const sid = uuidv4();
-  const session = getOrCreateSession(sid);
+  const session = await getOrCreateSession(sid);
   const { meta = {} } = req.body || {};
   session.utm_source = meta.utm_source;
   session.utm_campaign = meta.utm_campaign;
 
   const db = getDB();
-  db.prepare('INSERT INTO events (session_id, event_type, payload) VALUES (?,?,?)')
+  await db.prepare('INSERT INTO events (session_id, event_type, payload) VALUES ($1,$2,$3)')
     .run(sid, 'session_start', JSON.stringify(meta));
 
   res.json({ session_id: sid, step: 0 });
 });
 
-function upsertLead(sid, session, req) {
+async function upsertLead(sid, session, req) {
   const d = session.leadData;
   const score = calcScore(d);
   const db = getDB();
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO leads (session_id, name, phone, email, apartment_type, budget, purpose, timeline, score, utm_source, utm_campaign, ip, conversation)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
     ON CONFLICT(session_id) DO UPDATE SET
-      name=excluded.name, phone=excluded.phone, email=excluded.email,
-      apartment_type=excluded.apartment_type, budget=excluded.budget,
-      purpose=excluded.purpose, timeline=excluded.timeline,
-      score=excluded.score, conversation=excluded.conversation,
+      name=EXCLUDED.name, phone=EXCLUDED.phone, email=EXCLUDED.email,
+      apartment_type=EXCLUDED.apartment_type, budget=EXCLUDED.budget,
+      purpose=EXCLUDED.purpose, timeline=EXCLUDED.timeline,
+      score=EXCLUDED.score, conversation=EXCLUDED.conversation,
       updated_at=CURRENT_TIMESTAMP
   `).run(
     sid, d.name, d.phone, d.email || null,
