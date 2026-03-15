@@ -8,6 +8,7 @@ const { initDB } = require('./db');
 const chatRouter = require('./routes/chat');
 const leadsRouter = require('./routes/leads');
 const adminRouter = require('./routes/admin');
+const { startTelegramBot } = require('./telegramBot');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -44,4 +45,7 @@ app.get('*', (req, res) => {
 });
 
 initDB();
-app.listen(PORT, () => console.log(`🚀 KW Srishti Bot running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 KW Srishti Bot running on port ${PORT}`);
+  startTelegramBot();
+});
