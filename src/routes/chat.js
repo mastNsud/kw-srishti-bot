@@ -2,7 +2,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getDB } = require('../db');
 const { getOrCreateSession, saveSession } = require('../sessionStore');
-const { buildBotResponse } = require('../botEngine');
+const { buildBotResponse, calcScore } = require('../botEngine');
 
 const router = express.Router();
 
@@ -78,16 +78,5 @@ async function upsertLead(sid, session, req) {
   );
 }
 
-function calcScore(d) {
-  let score = 0;
-  if (d.name) score += 10;
-  if (d.phone) score += 25;
-  if (d.email) score += 15;
-  if (['Within 1 month', '1–3 months'].includes(d.timeline)) score += 20;
-  if (['3 BHK', 'Penthouse / 4 BHK'].includes(d.apartment_type)) score += 10;
-  if (d.budget === '₹90 Lakh+') score += 10;
-  if (d.purpose === 'Self-occupation') score += 10;
-  return Math.min(score, 100);
-}
 
 module.exports = router;
