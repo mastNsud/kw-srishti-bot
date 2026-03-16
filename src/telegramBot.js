@@ -1,6 +1,7 @@
 const TelegramBot = require('node-telegram-bot-api');
 const { buildBotResponse } = require('./botEngine');
 const { getOrCreateSession, saveSession } = require('./sessionStore');
+const { upsertLead } = require('./leadService');
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
@@ -29,6 +30,7 @@ function startTelegramBot() {
     session.step = 0;
     session.leadData = {};
     session.history = [];
+    session.source = 'telegram';
     await saveSession(sid, session);
 
     const result = await buildBotResponse(session, '', {});
@@ -46,6 +48,10 @@ function startTelegramBot() {
 
     const result = await buildBotResponse(session, msg.text, {});
     await saveSession(sid, session);
+    
+    // Save lead to DB if we have data
+    await upsertLead(sid, session, {});
+
     sendReply(bot, chatId, result, botUsername);
   });
 

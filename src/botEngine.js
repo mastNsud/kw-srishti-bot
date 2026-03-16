@@ -190,10 +190,28 @@ async function buildBotResponse(session, userInput, req) {
 function calcScore(d) {
   let s = 0;
   if (d.name) s += 10;
-  if (d.phone) s += 25;
-  if (d.email) s += 15;
-  if (d.timeline && (d.timeline.includes('1') || d.timeline.includes('soon'))) s += 20;
-  if (d.budget && (d.budget.includes('90') || d.budget.includes('crore'))) s += 10;
+  if (d.phone) s += 30; // Phone is critical
+  if (d.email) s += 10;
+  
+  // High intent signals
+  const timeline = (d.timeline || '').toLowerCase();
+  if (timeline.includes('soon') || timeline.includes('immediately') || timeline.includes('1') || timeline.includes('month')) {
+    s += 25;
+  } else if (timeline.includes('3') || timeline.includes('6')) {
+    s += 15;
+  }
+
+  // Budget signals
+  const budget = (d.budget || '').toLowerCase();
+  if (budget.includes('crore') || budget.includes('90') || budget.includes('1.')) {
+    s += 20;
+  } else if (budget.includes('70') || budget.includes('80')) {
+    s += 10;
+  }
+
+  // Purpose
+  if (d.purpose && d.purpose.toLowerCase().includes('self')) s += 5;
+
   return Math.min(s, 100);
 }
 

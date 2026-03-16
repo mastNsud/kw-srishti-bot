@@ -2,7 +2,8 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getDB } = require('../db');
 const { getOrCreateSession, saveSession } = require('../sessionStore');
-const { buildBotResponse, calcScore } = require('../botEngine');
+const { buildBotResponse } = require('../botEngine');
+const { upsertLead } = require('../leadService');
 
 const router = express.Router();
 
@@ -17,8 +18,8 @@ router.post('/message', async (req, res) => {
     if (meta.utm_source && !session.utm_source) {
       session.utm_source = meta.utm_source;
       session.utm_campaign = meta.utm_campaign;
-      session.source = meta.source || 'website';
     }
+    session.source = meta.source || 'website';
 
     // Log event
     const db = getDB();
@@ -31,7 +32,7 @@ router.post('/message', async (req, res) => {
     await saveSession(sid, session);
 
     // If lead data is complete, upsert to leads table
-    if (session.leadData?.phone) {
+    if (session.leadData?.phone || session.leadData?.name) {
       await upsertLead(sid, session, req);
     }
 
@@ -57,25 +58,9 @@ router.post('/start', async (req, res) => {
   res.json({ session_id: sid, step: 0 });
 });
 
-async function upsertLead(sid, session, req) {
-  const d = session.leadData;
-  const score = calcScore(d);
-  const db = getDB();
-  await db.prepare(`
-    INSERT INTO leads (session_id, name, phone, email, apartment_type, budget, purpose, timeline, score, utm_source, utm_campaign, ip, conversation)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
-    ON CONFLICT(session_id) DO UPDATE SET
-      name=EXCLUDED.name, phone=EXCLUDED.phone, email=EXCLUDED.email,
-      apartment_type=EXCLUDED.apartment_type, budget=EXCLUDED.budget,
-      purpose=EXCLUDED.purpose, timeline=EXCLUDED.timeline,
-      score=EXCLUDED.score, conversation=EXCLUDED.conversation,
-      updated_at=CURRENT_TIMESTAMP
-  `).run(
-    sid, d.name, d.phone, d.email || null,
-    d.apartment_type, d.budget, d.purpose, d.timeline,
-    score, session.utm_source, session.utm_campaign,
-    req.ip, JSON.stringify(session.history || [])
-  );
+async function upsertLeadLocal(sid, session, req) {
+  // Deprecated: logic moved to leadService.js
+  await upsertLead(sid, session, req);
 }
 
 
