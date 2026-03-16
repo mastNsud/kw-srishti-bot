@@ -1,44 +1,68 @@
 const express = require('express');
 const router = express.Router();
 const botEngine = require('../botEngine');
+const fetch = require('node-fetch'); // Ensure fetch is available
+
+// In-memory sessions for WhatsApp (Simple implementation)
+const waSessions = {};
 
 /**
  * WAHA Webhook Handler
- * This receives messages from the WAHA service (WhatsApp HTTP API).
- * Documentation: https://waha.dev/docs/how-to/webhooks/
  */
 router.post('/webhook', async (req, res) => {
     const { event, payload } = req.body;
 
-    // We only care about message events
+    // Support both 'message.upsert' and plain 'message' events from WAHA
     if (event !== 'message.upsert' && event !== 'message') {
         return res.sendStatus(200);
     }
 
     const message = payload;
-    const from = message.from; // Sender's WhatsApp ID (e.g. 919003068325@c.us)
+    const from = message.from; // Sender ID: 91XXXXXXXXXX@c.us
     const text = message.body || "";
 
+    // Ignore empty messages or messages FROM the bot itself
     if (!text || message.fromMe) return res.sendStatus(200);
 
-    console.log(`📱 WhatsApp Message from ${from}: ${text}`);
+    console.log(`📱 [WhatsApp] Message from ${from}: ${text}`);
 
-    // Mock session for now (In real use, we'd fetch/store session in DB)
-    const session = {
-        id: `wa_${from}`,
-        leadData: {},
-        history: []
-    };
+    // Initialize or retrieve session
+    if (!waSessions[from]) {
+        waSessions[from] = {
+            id: `wa_${from}`,
+            leadData: {},
+            history: []
+        };
+    }
+
+    const session = waSessions[from];
 
     try {
+        // Build the AI response using Priya's engine
         const result = await botEngine.buildBotResponse(session, text);
         
-        // TODO: Call WAHA API to send 'result.message' back to 'from'
-        // await waha.sendMessage(from, result.message);
-        
-        console.log(`🤖 Priya's WhatsApp response: ${result.message}`);
+        if (result && result.message) {
+            // Send back to WAHA
+            const wahaUrl = process.env.WAHA_URL || 'http://localhost:3000'; // Default to localhost if not set
+            const wahaKey = process.env.WAHA_API_KEY;
+
+            console.log(`🤖 [WhatsApp] Priya replying: ${result.message}`);
+
+            await fetch(`${wahaUrl}/api/sendText`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Api-Key': wahaKey
+                },
+                body: JSON.stringify({
+                    session: "default",
+                    chatId: from,
+                    text: result.message
+                })
+            });
+        }
     } catch (err) {
-        console.error('WhatsApp Bot Error:', err);
+        console.error('❌ WhatsApp Webhook Error:', err);
     }
 
     res.sendStatus(200);

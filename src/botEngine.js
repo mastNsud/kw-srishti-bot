@@ -1,9 +1,22 @@
 const fetch = require('node-fetch');
+const fs = require('fs');
+const path = require('path');
 
 // ── CONFIG ──
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free';
 const SALES_WA = process.env.SALES_WHATSAPP_NUMBER || '919003068325';
+
+// Load Grounded Knowledge
+const KNOWLEDGE_PATH = path.join(__dirname, 'knowledge.txt');
+let PROJECT_KNOWLEDGE = "KW Srishti is a luxury residential project in Raj Nagar Extension, Ghaziabad.";
+try {
+  if (fs.existsSync(KNOWLEDGE_PATH)) {
+    PROJECT_KNOWLEDGE = fs.readFileSync(KNOWLEDGE_PATH, 'utf8');
+  }
+} catch (err) {
+  console.error('Error loading knowledge.txt:', err);
+}
 
 // ── AGENDA ──
 // What we need to collect from the lead
@@ -44,21 +57,18 @@ NEXT TARGET: ${nextTarget ? nextTarget.label : 'None (All collected)'}
 INSTRUCTIONS:
 1. Be warm, human, and conversational. Don't sound like a form.
 2. Acknowledge what the user just said.
-3. If they ask a property question, answer it concisely using your knowledge.
-4. Always steer back to the AGENDA if something is missing.
-5. ENGAGEMENT HOOKS:
+3. USE ONLY THE PROJECT KNOWLEDGE BELOW for technical specs, pricing, and specific project details. 
+4. If an answer is not in the PROJECT KNOWLEDGE, say you'll check with the sales manager.
+5. Always steer back to the AGENDA if something is missing.
+6. ENGAGEMENT HOOKS:
    - If the user asks for a BROCHURE, prioritize getting their **Email Address**.
    - If the user asks for a SITE VISIT, prioritize getting their **Mobile Number** and preferred time.
    - If the user asks to check availability, emphasize urgency (limited units left).
-6. PROVIDE SUGGESTED BUTTONS (Quick Replies) at the end of your message in this format: [BUTTON: Label]. Max 4 buttons.
-7. Keep responses concise (under 100 words).
+7. PROVIDE SUGGESTED BUTTONS (Quick Replies) at the end of your message in this format: [BUTTON: Label]. Max 4 buttons.
+8. Keep responses concise (under 100 words).
 
-KNOWLEDGE BASE:
-- Location: NH-58, Raj Nagar Extension, Ghaziabad. Direct access from NH-58.
-- Units: 1BHK (740-875 sq.ft), 2BHK (985-1310 sq.ft), 3BHK (1485-1500 sq.ft), Penthouse (1900-2650 sq.ft).
-- Amenities: Guitar shaped pool, 40+ facilities, 24hr power/water, shopping complex inside.
-- Legal: GDA Approved, Freehold land.
-- Loans: SBI, HDFC, ICICI, etc approved.
+PROJECT KNOWLEDGE:
+${PROJECT_KNOWLEDGE}
 
 USER INPUT: "${userInput}"`;
 
