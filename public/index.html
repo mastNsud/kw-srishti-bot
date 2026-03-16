@@ -105,6 +105,9 @@ footer{background:#080807;border-top:1px solid rgba(201,168,76,.1);padding:3rem 
 .f-contact{margin-top:1.5rem;font-size:.83rem;color:var(--muted)}
 .f-contact a{color:var(--gold);text-decoration:none}
 .f-legal{margin-top:1rem;font-size:.7rem;color:rgba(138,134,117,.45);max-width:700px;margin-inline:auto;line-height:1.8}
+.f-social{margin-top:2rem;display:flex;justify-content:center;gap:1.5rem}
+.f-social a{color:var(--muted);font-size:1.2rem;text-decoration:none;transition:color .2s}
+.f-social a:hover{color:var(--gold)}
 
 /* ── CHATBOT ── */
 .chat-fab{position:fixed;bottom:2rem;right:2rem;z-index:1000;width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-l));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.4rem;box-shadow:0 8px 32px rgba(201,168,76,.45);transition:transform .3s;animation:glow 3s infinite}
@@ -174,7 +177,8 @@ footer{background:#080807;border-top:1px solid rgba(201,168,76,.1);padding:3rem 
     <p class="hero-addr">NH-58 · Raj Nagar Extn. · Ghaziabad · GDA Approved · Freehold</p>
     <div class="hero-ctas">
       <a href="#plans" class="btn-gold">Explore Floor Plans</a>
-      <button class="btn-ghost" onclick="openChat()">Talk to Priya – Our AI Advisor</button>
+      <button class="btn-ghost" onclick="triggerHook('brochure')">Download Brochure</button>
+      <button class="btn-ghost" onclick="triggerHook('visit')">Book a Site Visit</button>
     </div>
     <div class="hero-stats">
       <div><div class="stat-num">80%</div><div class="stat-lbl">Green Area</div></div>
@@ -292,6 +296,12 @@ footer{background:#080807;border-top:1px solid rgba(201,168,76,.1);padding:3rem 
   <div class="f-logo">KW SRISHTI</div>
   <div class="f-tag">For Touching Heights · K World Estate Pvt. Ltd.</div>
   <div class="f-contact">📞 <a href="tel:+919310908888">+91-9310 90 8888</a> &nbsp;|&nbsp; ✉️ <a href="mailto:saleskws@kwgroup.in">saleskws@kwgroup.in</a> &nbsp;|&nbsp; 🌐 <a href="#">www.kwshrishti.com</a></div>
+  <div class="f-social">
+    <a href="https://www.facebook.com/kworldgroup/" target="_blank" title="Facebook">FB</a>
+    <a href="https://www.instagram.com/kworld_group/" target="_blank" title="Instagram">IG</a>
+    <a href="https://www.linkedin.com/company/kw-group/" target="_blank" title="LinkedIn">LI</a>
+    <a href="https://www.youtube.com/@KWGroup" target="_blank" title="YouTube">YT</a>
+  </div>
   <div class="f-legal">Disclaimer: This page is purely conceptual and not a legal offering. Specifications and layouts in BBA shall be final. The developer reserves the right to amend/alter the area, layout, plans, elevations, specifications and amenities.</div>
 </footer>
 
@@ -345,6 +355,12 @@ async function startChat(){
   if(r.session_id){SID=r.session_id;localStorage.setItem('kw_sid',SID);}
   // Send empty trigger to get greeting
   await sendMsg('','');
+}
+
+function triggerHook(type){
+  openChat();
+  if(type==='brochure') sendMsg('I would like to download the brochure and check the project details.');
+  if(type==='visit') sendMsg('I want to schedule a site visit to KW Srishti.');
 }
 
 function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
