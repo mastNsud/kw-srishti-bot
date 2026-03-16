@@ -18,6 +18,7 @@ const AGENDA = [
 ];
 
 // ── AI ENGINE via OpenRouter ──
+// ── AI ENGINE via OpenRouter ──
 async function askAI(session, userInput) {
   if (!OPENROUTER_API_KEY) {
     console.error('❌ OPENROUTER_API_KEY not set');
@@ -61,49 +62,66 @@ KNOWLEDGE BASE:
 
 USER INPUT: "${userInput}"`;
 
-  try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://github.com/mastNsud/kw-srishti-bot',
-        'X-Title': 'KW Srishti Bot'
-      },
-      body: JSON.stringify({
-        model: OPENROUTER_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...((session.history || []).slice(-6).map(h => ({ role: h.role === 'bot' ? 'assistant' : 'user', content: h.text }))),
-          { role: 'user', content: userInput }
-        ],
-        temperature: 0.7
-      })
-    });
+  // Robust Fallback: List of models to try in sequence
+  const models = [
+    OPENROUTER_MODEL, 
+    'openrouter/free', // Meta-router (auto-picks best free model)
+    'google/gemini-2.0-flash-exp:free',
+    'meta-llama/llama-3.3-70b-instruct:free',
+    'mistralai/mistral-small-3.1-24b-instruct:free'
+  ];
 
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.error('❌ OpenRouter API Error:', response.status, data);
-      return null;
+  for (const modelId of models) {
+    if (!modelId) continue;
+    try {
+      console.log(`🤖 Priya attempting AI response with model: ${modelId}`);
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://github.com/mastNsud/kw-srishti-bot',
+          'X-Title': 'KW Srishti Bot'
+        },
+        body: JSON.stringify({
+          model: modelId,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...((session.history || []).slice(-6).map(h => ({ role: h.role === 'bot' ? 'assistant' : 'user', content: h.text }))),
+            { role: 'user', content: userInput }
+          ],
+          temperature: 0.7
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.warn(`⚠️ Model ${modelId} failed (${response.status}):`, data.error?.message || 'Unknown error');
+        continue;
+      }
+
+      let text = data.choices?.[0]?.message?.content || "";
+      if (!text) continue;
+
+      // Extract buttons [BUTTON: Label]
+      const buttons = [];
+      const btnRegex = /\[BUTTON:\s*(.*?)\]/g;
+      let match;
+      while ((match = btnRegex.exec(text)) !== null) {
+        buttons.push(match[1].trim());
+      }
+      text = text.replace(btnRegex, '').trim();
+
+      return { text, buttons };
+    } catch (err) {
+      console.error(`❌ Connection error for ${modelId}:`, err.message);
+      continue;
     }
-
-    let text = data.choices?.[0]?.message?.content || "I'm sorry, I'm having a little trouble connecting. Could you try that again?";
-
-    // Extract buttons [BUTTON: Label]
-    const buttons = [];
-    const btnRegex = /\[BUTTON:\s*(.*?)\]/g;
-    let match;
-    while ((match = btnRegex.exec(text)) !== null) {
-      buttons.push(match[1].trim());
-    }
-    text = text.replace(btnRegex, '').trim();
-
-    return { text, buttons };
-  } catch (err) {
-    console.error('OpenRouter Error:', err);
-    return null;
   }
+
+  console.error('❌ All AI models failed after multiple attempts.');
+  return null;
 }
 
 // ── DATA EXTRACTION (Pseudo-NLP) ──
