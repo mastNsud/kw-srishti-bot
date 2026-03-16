@@ -7,6 +7,7 @@ const path = require('path');
 const { initDB } = require('./db');
 const chatRouter = require('./routes/chat');
 const leadsRouter = require('./routes/leads');
+const whatsappRouter = require('./routes/whatsapp');
 const adminRouter = require('./routes/admin');
 const { startTelegramBot } = require('./telegramBot');
 
