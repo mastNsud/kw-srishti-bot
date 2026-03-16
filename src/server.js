@@ -11,6 +11,7 @@ const adminRouter = require('./routes/admin');
 const { startTelegramBot } = require('./telegramBot');
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 // Security
