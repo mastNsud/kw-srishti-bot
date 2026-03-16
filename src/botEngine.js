@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 
 // ── CONFIG ──
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'mistralai/mistral-7b-instruct:free';
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free';
 const SALES_WA = process.env.SALES_WHATSAPP_NUMBER || '919003068325';
 
 // ── AGENDA ──
