@@ -79,6 +79,12 @@ USER INPUT: "${userInput}"`;
     });
 
     const data = await response.json();
+    
+    if (!response.ok) {
+      console.error('❌ OpenRouter API Error:', response.status, data);
+      return null;
+    }
+
     let text = data.choices?.[0]?.message?.content || "I'm sorry, I'm having a little trouble connecting. Could you try that again?";
 
     // Extract buttons [BUTTON: Label]
