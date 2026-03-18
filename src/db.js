@@ -34,6 +34,8 @@ async function initDB() {
         source TEXT DEFAULT 'website',
         utm_source TEXT, utm_campaign TEXT,
         ip TEXT, user_agent TEXT,
+        location TEXT, language TEXT, 
+        demographics TEXT, profiling_notes TEXT,
         conversation TEXT, notes TEXT,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP

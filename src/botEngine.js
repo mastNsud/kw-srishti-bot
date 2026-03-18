@@ -25,6 +25,8 @@ const AGENDA = [
   { key: 'purpose', label: 'Purpose', description: 'Self-occupation or Investment' },
   { key: 'budget', label: 'Budget', description: 'Approximate budget range' },
   { key: 'timeline', label: 'Timeline', description: 'Buying timeline' },
+  { key: 'location', label: 'Current Location', description: 'Where do they stay currently?' },
+  { key: 'language', label: 'Preferred Language', description: 'English/Hindi/etc.' },
   { key: 'phone', label: 'Mobile Number', description: '10-digit contact' }
 ];
 
@@ -55,7 +57,10 @@ INSTRUCTIONS:
 1. Be warm, human, and conversational. Don't sound like a robot asking for data.
 2. USE ONLY THE PROJECT KNOWLEDGE BELOW for technical specs, pricing, and project details. 
 3. If information is missing, prioritize the NEXT TARGET but acknowledge user queries first.
-4. If an answer is not in the PROJECT KNOWLEDGE, say you'll check with the sales manager.
+4. **PERSONALIZATION**:
+   - If you know their **Current Location**, highlight how convenient KW Srishti is for them (commute-wise).
+   - If they speak Hindi, respond in Hindi (or a mix).
+   - Try to infer **Demographics** (e.g., family size) to recommend 2BHK vs 3BHK.
 5. If they give a phone number, tell them: "Our consultant will call you shortly with the best deals! ✨"
 6. PROVIDE SUGGESTED BUTTONS in this format: [BUTTON: Label]. Max 4 buttons.
 7. Keep responses concise (under 100 words).
@@ -128,6 +133,10 @@ USER INPUT: "${userInput}"`;
 function extractLeadData(text, collected) {
   const lower = text.toLowerCase();
   
+  // Language Detection (Simple)
+  if (/[अ-ज्ञ]/.test(text)) collected.language = 'Hindi';
+  else if (!collected.language) collected.language = 'English';
+
   // Phone: match 10 digits
   const phoneMatch = text.match(/\d{10}/);
   if (phoneMatch) collected.phone = phoneMatch[0];
@@ -136,6 +145,12 @@ function extractLeadData(text, collected) {
   if (lower.includes('bhk') || lower.includes('1') || lower.includes('2') || lower.includes('3') || lower.includes('penthouse')) {
     collected.apartment_type = text;
   }
+
+  // Location detection (hints)
+  const locations = ['delhi', 'noida', 'gurgaon', 'ghaziabad', 'meerut', 'hapur', 'mumbai'];
+  locations.forEach(loc => {
+    if (lower.includes(loc)) collected.location = loc.charAt(0).toUpperCase() + loc.slice(1);
+  });
 
   // Purpose
   if (lower.includes('self') || lower.includes('invest') || lower.includes('rent')) {
@@ -207,8 +222,13 @@ function calcScore(d) {
   if (d.phone) s += 30; // Phone is critical
   if (d.apartment_type) s += 15;
   if (d.budget) s += 15;
-  if (d.timeline) s += 20;
-  if (d.purpose) s += 10;
+  if (d.timeline) s += 10;
+  if (d.purpose) s += 5;
+  
+  // Profiling weights
+  if (d.location) s += 5;
+  if (d.language) s += 5;
+  if (d.demographics) s += 5;
 
   return Math.min(s, 100);
 }

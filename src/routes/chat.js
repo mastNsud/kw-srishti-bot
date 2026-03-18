@@ -27,6 +27,22 @@ router.post('/message', async (req, res) => {
       .run(sid, 'message', JSON.stringify({ message, quick_reply }));
 
     const userInput = quick_reply || message || '';
+    
+    // IP-based Geocoding (First-party enrichment on website)
+    if (session.source === 'website' && !session.leadData?.location && req.ip && req.ip !== '::1' && req.ip !== '127.0.0.1') {
+      try {
+        const geoRes = await fetch(`http://ip-api.com/json/${req.ip}?fields=status,city,regionName,country`);
+        const geoData = await geoRes.json();
+        if (geoData.status === 'success') {
+          session.leadData = session.leadData || {};
+          session.leadData.location = `${geoData.city}, ${geoData.regionName}`;
+          console.log(`📍 Geocoded lead to: ${session.leadData.location}`);
+        }
+      } catch (err) {
+        console.warn('⚠️ Geocoding failed:', err.message);
+      }
+    }
+
     const result = await buildBotResponse(session, userInput, req);
 
     await saveSession(sid, session);

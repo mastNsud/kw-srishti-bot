@@ -19,9 +19,10 @@ async function upsertLead(sid, session, req = {}) {
         session_id, name, phone, email, 
         apartment_type, budget, purpose, timeline, 
         score, source, utm_source, utm_campaign, 
-        ip, conversation
+        ip, location, language, demographics, profiling_notes,
+        conversation
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
       ON CONFLICT(session_id) DO UPDATE SET
         name=EXCLUDED.name, 
         phone=EXCLUDED.phone, 
@@ -32,6 +33,10 @@ async function upsertLead(sid, session, req = {}) {
         timeline=EXCLUDED.timeline,
         score=EXCLUDED.score,
         source=EXCLUDED.source, 
+        location=EXCLUDED.location,
+        language=EXCLUDED.language,
+        demographics=EXCLUDED.demographics,
+        profiling_notes=EXCLUDED.profiling_notes,
         conversation=EXCLUDED.conversation,
         updated_at=CURRENT_TIMESTAMP
     `).run(
@@ -48,6 +53,10 @@ async function upsertLead(sid, session, req = {}) {
       session.utm_source || null, 
       session.utm_campaign || null,
       req.ip || null, 
+      d.location || null,
+      d.language || null,
+      d.demographics || null,
+      d.profiling_notes || null,
       JSON.stringify(session.history || [])
     );
     console.log(`✅ Lead updated [${source}]: ${d.name || 'Anonymous'} (Score: ${score})`);
