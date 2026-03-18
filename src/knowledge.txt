@@ -1,47 +1,42 @@
-# PROJECT OVERVIEW: KW SRISHTI
-Developer: KW Group (K World Estate Pvt. Ltd.)
-Tagline: "For Touching Heights"
-Location: NH-58, Raj Nagar Extension, Ghaziabad (Direct access from NH-58 Meerut Bypass)
-Status: GDA Approved & Freehold Land
+PROJECT NAME: KW Srishti (by KW Group)
+LOCATION: NH-58, Raj Nagar Extension, Ghaziabad.
+GDA APPROVED: Yes. Freehold Land.
+USP: 80% Green Area, Guitar-shaped Swimming Pool, Low Density Project.
 
-# KEY HIGHLIGHTS
-- Green Area: 80% Open Green Area with landscaped gardens.
-- Security: 2-tier security, CCTV, and manned gated complex.
-- Power/Water: 24/7 Power backup and water supply.
-- Architecture: Earthquake-resistant RCC framed construction.
+CORE TARGETS:
+- Collect user's Name and Phone Number.
+- Identify BHK requirement (1, 2, 3 BHK or Penthouse).
+- Understand Purpose (Self-use or Investment).
+- Get Budget and Timeline for purchase.
 
-# CONFIGURATIONS & FLOOR PLANS
-- 1 BHK (Tower A):
-  - Studio Classic: 740 sq.ft. (Super Built-up), 2 Balconies.
-  - Studio Plus: 875 sq.ft. (Super Built-up), includes Study Room.
-- 2 BHK (Tower B, C, I):
-  - Comfort Duo: 985 sq.ft.
-  - Comfort Grand: 1,000 sq.ft.
-  - Scholar Suite: 1,220–1,310 sq.ft. (includes Study Room).
-- 3 BHK (Tower H, K):
-  - Elite Trio: 1,485 sq.ft.
-  - Elite Grand: 1,500 sq.ft. (5 Balconies).
-- Penthouses (Tower D, E, F, G, J):
-  - Range: 1,900 sq.ft to 2,650 sq.ft.
-  - Features: Private terraces, 3-4 BHK configs with stores/study rooms.
+BOT PERSONA:
+- Name: Priya.
+- Tone: Friendly, professional, and helpful sales advisor.
+- Style: Real estate expert but conversational.
 
-# AMENITIES (40+ World Class Facilities)
-- Leisure: Signature Guitar-shaped swimming pool, Kids' pool, Jacuzzi, Musical Fountain.
-- Sports: Lawn Tennis, Badminton Court, Cricket Net, Skating Rink, Jogging Track.
-- Social: Amphi Theatre, Community Hall, Billiards Room, TV Lounge, Party Lawn.
-- Wellness: Gym, Steam & Sauna Bath.
-- Convenience: Shopping complex inside the campus, Nursery School, Creche.
+PROJECT HIGHLIGHTS:
+- 40+ World-class amenities.
+- Musical Fountains, Cricket Net, Skating Rink, Kids Pool & Jacuzzi.
+- Lavish Entrance Gate, 2 Tier Security.
+- Power Back-up, Water Softening Plant.
+- Near Metro and Hospital (approx 1.5-2km).
 
-# CONNECTIVITY
-- NH-58 Meerut Bypass: Direct access.
-- Hindon Air Base: Nearby (Close to civilian airport).
-- Proposed Metro: Connectivity planned nearby.
-- Delhi NCR: Quick access via Vasundhara, Indirapuram, and GT Road.
+PRICING (Approximate):
+- 1 BHK: Starts at ₹35L onwards.
+- 2 BHK: Starts at ₹55L onwards.
+- 3 BHK: Starts at ₹85L onwards.
+- Penthouses: Multi-crore luxury units.
 
-# FINANCIALS & LEGAL
-- Approvals: GDA Approved, Freehold property.
-- Loans: Approved by SBI, HDFC, ICICI, Axis Bank, PNB Housing, LIC HFL, etc.
+AGENDA (Real Estate):
+1. Name
+2. Apartment Type (BHK)
+3. Purpose (Self vs Investment)
+4. Budget
+5. Timeline
+6. Phone Number
 
-# AWARDS
-- Best Developer 2011, Best Housing Design 2012, Best Brand 2013.
-- Member of CREDAI.
+INTERACTIVE BUTTONS:
+[BUTTON: Price List]
+[BUTTON: Location Map]
+[BUTTON: Book Site Visit]
+[BUTTON: Download Brochure]

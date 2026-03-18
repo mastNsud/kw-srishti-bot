@@ -3,13 +3,13 @@ const fs = require('fs');
 const path = require('path');
 
 // ── CONFIG ──
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free';
+const HF_TOKEN = process.env.HUGGINGFACE_TOKEN;
+const PRIMARY_MODEL = process.env.HF_PRIMARY_MODEL || 'meta-llama/Llama-3.2-1B-Instruct';
 const SALES_WA = process.env.SALES_WHATSAPP_NUMBER || '919003068325';
 
 // Load Grounded Knowledge
 const KNOWLEDGE_PATH = path.join(__dirname, 'knowledge.txt');
-let PROJECT_KNOWLEDGE = "KW Srishti is a luxury residential project in Raj Nagar Extension, Ghaziabad.";
+let PROJECT_KNOWLEDGE = "KW Srishti is a luxury residential project by KW Group in Raj Nagar Extension, Ghaziabad.";
 try {
   if (fs.existsSync(KNOWLEDGE_PATH)) {
     PROJECT_KNOWLEDGE = fs.readFileSync(KNOWLEDGE_PATH, 'utf8');
@@ -18,23 +18,20 @@ try {
   console.error('Error loading knowledge.txt:', err);
 }
 
-// ── AGENDA ──
-// What we need to collect from the lead
+// ── AGENDA (Real Estate Industry) ──
 const AGENDA = [
-  { key: 'name', label: 'Good Name', description: 'User full name' },
+  { key: 'name', label: 'Good Name', description: 'User name' },
   { key: 'apartment_type', label: 'Apartment Type', description: '1/2/3 BHK or Penthouse' },
   { key: 'purpose', label: 'Purpose', description: 'Self-occupation or Investment' },
   { key: 'budget', label: 'Budget', description: 'Approximate budget range' },
-  { key: 'timeline', label: 'Timeline', description: 'Buying timeline (e.g., 1 month, 3 months)' },
-  { key: 'phone', label: 'Mobile Number', description: '10-digit contact number' },
-  { key: 'email', label: 'Email Address', description: 'Optional email for brochure' }
+  { key: 'timeline', label: 'Timeline', description: 'Buying timeline' },
+  { key: 'phone', label: 'Mobile Number', description: '10-digit contact' }
 ];
 
-// ── AI ENGINE via OpenRouter ──
-// ── AI ENGINE via OpenRouter ──
+// ── AI ENGINE via Hugging Face Router ──
 async function askAI(session, userInput) {
-  if (!OPENROUTER_API_KEY) {
-    console.error('❌ OPENROUTER_API_KEY not set');
+  if (!HF_TOKEN) {
+    console.error('❌ HUGGINGFACE_TOKEN not set');
     return null;
   }
 
@@ -42,11 +39,11 @@ async function askAI(session, userInput) {
   const missing = AGENDA.filter(a => !collected[a.key] || collected[a.key] === 'pending');
   const nextTarget = missing[0];
 
-  const systemPrompt = `You are Priya, a friendly, professional, and helpful sales advisor for KW Srishti (NH-58, Raj Nagar Extension, Ghaziabad).
-KW Srishti is a luxury residential project with GDA approval, freehold land, 80% green area, and 40+ amenities like a guitar-shaped pool.
+  const systemPrompt = `You are Priya, a friendly, professional, and helpful sales advisor for KW Srishti (by KW Group).
+KW Srishti is a luxury residential project in NH-58, Raj Nagar Extension, Ghaziabad.
 
-GOAL: Converse naturally with the user while subtly guiding them to provide lead qualification details.
-AGENDA (Collect these in order if possible): 
+GOAL: Converse naturally with the user while subtly guiding them to provide real estate lead qualification details.
+AGENDA (Collect these gracefully): 
 ${AGENDA.map(a => `- ${a.label} (${a.key})`).join('\n')}
 
 CURRENT DATA COLLECTED:
@@ -55,43 +52,35 @@ ${JSON.stringify(collected, null, 2)}
 NEXT TARGET: ${nextTarget ? nextTarget.label : 'None (All collected)'}
 
 INSTRUCTIONS:
-1. Be warm, human, and conversational. Don't sound like a form.
-2. Acknowledge what the user just said.
-3. USE ONLY THE PROJECT KNOWLEDGE BELOW for technical specs, pricing, and specific project details. 
+1. Be warm, human, and conversational. Don't sound like a robot asking for data.
+2. USE ONLY THE PROJECT KNOWLEDGE BELOW for technical specs, pricing, and project details. 
+3. If information is missing, prioritize the NEXT TARGET but acknowledge user queries first.
 4. If an answer is not in the PROJECT KNOWLEDGE, say you'll check with the sales manager.
-5. Always steer back to the AGENDA if something is missing.
-6. ENGAGEMENT HOOKS:
-   - If the user asks for a BROCHURE, prioritize getting their **Email Address**.
-   - If the user asks for a SITE VISIT, prioritize getting their **Mobile Number** and preferred time.
-   - If the user asks to check availability, emphasize urgency (limited units left).
-7. PROVIDE SUGGESTED BUTTONS (Quick Replies) at the end of your message in this format: [BUTTON: Label]. Max 4 buttons.
-8. Keep responses concise (under 100 words).
+5. If they give a phone number, tell them: "Our consultant will call you shortly with the best deals! ✨"
+6. PROVIDE SUGGESTED BUTTONS in this format: [BUTTON: Label]. Max 4 buttons.
+7. Keep responses concise (under 100 words).
 
 PROJECT KNOWLEDGE:
 ${PROJECT_KNOWLEDGE}
 
 USER INPUT: "${userInput}"`;
 
-  // Robust Fallback: List of models to try in sequence
+  // Fallback Chain (Optimized for speed < 8s)
   const models = [
-    OPENROUTER_MODEL, 
-    'openrouter/free', // Meta-router (auto-picks best free model)
-    'google/gemini-2.0-flash-exp:free',
-    'meta-llama/llama-3.3-70b-instruct:free',
-    'mistralai/mistral-small-3.1-24b-instruct:free'
+    PRIMARY_MODEL,
+    'Qwen/Qwen2.5-1.5B-Instruct',
+    'microsoft/Phi-3.5-mini-instruct',
+    'HuggingFaceH4/zephyr-7b-beta'
   ];
 
   for (const modelId of models) {
-    if (!modelId) continue;
     try {
-      console.log(`🤖 Priya attempting AI response with model: ${modelId}`);
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      console.log(`🤖 Priya attempting AI response with HF model: ${modelId}`);
+      const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://github.com/mastNsud/kw-srishti-bot',
-          'X-Title': 'KW Srishti Bot'
+          'Authorization': `Bearer ${HF_TOKEN}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           model: modelId,
@@ -100,6 +89,7 @@ USER INPUT: "${userInput}"`;
             ...((session.history || []).slice(-6).map(h => ({ role: h.role === 'bot' ? 'assistant' : 'user', content: h.text }))),
             { role: 'user', content: userInput }
           ],
+          max_tokens: 300,
           temperature: 0.7
         })
       });
@@ -107,7 +97,7 @@ USER INPUT: "${userInput}"`;
       const data = await response.json();
       
       if (!response.ok) {
-        console.warn(`⚠️ Model ${modelId} failed (${response.status}):`, data.error?.message || 'Unknown error');
+        console.warn(`⚠️ HF Model ${modelId} failed (${response.status}):`, data.error || 'Unknown error');
         continue;
       }
 
@@ -125,12 +115,12 @@ USER INPUT: "${userInput}"`;
 
       return { text, buttons };
     } catch (err) {
-      console.error(`❌ Connection error for ${modelId}:`, err.message);
+      console.error(`❌ HF Connection error for ${modelId}:`, err.message);
       continue;
     }
   }
 
-  console.error('❌ All AI models failed after multiple attempts.');
+  console.error('❌ All HF models failed.');
   return null;
 }
 
@@ -138,37 +128,33 @@ USER INPUT: "${userInput}"`;
 function extractLeadData(text, collected) {
   const lower = text.toLowerCase();
   
-  // Very basic extraction for now (AI handles the flow, this helps track state)
-  // In a more advanced version, we'd use the AI to return JSON of extracted fields.
-  
-  if (!collected.name && text.length > 2 && text.length < 50 && !lower.includes('hello') && !lower.includes('hi')) {
-    collected.name = text;
-  }
-  
-  if (lower.includes('bhk') || lower.includes('penthouse')) {
+  // Phone: match 10 digits
+  const phoneMatch = text.match(/\d{10}/);
+  if (phoneMatch) collected.phone = phoneMatch[0];
+
+  // BHK requirement
+  if (lower.includes('bhk') || lower.includes('1') || lower.includes('2') || lower.includes('3') || lower.includes('penthouse')) {
     collected.apartment_type = text;
   }
-  
+
+  // Purpose
   if (lower.includes('self') || lower.includes('invest') || lower.includes('rent')) {
     collected.purpose = text;
   }
-  
-  if (lower.includes('lakh') || lower.includes('crore') || lower.includes('budget')) {
+
+  // Budget
+  if (lower.includes('lakh') || lower.includes('crore') || lower.includes('budget') || lower.includes('cr')) {
     collected.budget = text;
   }
-  
-  if (lower.includes('month') || lower.includes('soon') || lower.includes('exploring')) {
+
+  // Timeline
+  if (lower.includes('month') || lower.includes('year') || lower.includes('immediate')) {
     collected.timeline = text;
   }
-  
-  const phoneMatch = text.match(/\d{10}/);
-  if (phoneMatch) {
-    collected.phone = phoneMatch[0];
-  }
-  
-  const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-  if (emailMatch) {
-    collected.email = emailMatch[0];
+
+  // Name extraction (simple fallback)
+  if (!collected.name && text.length > 2 && text.length < 30 && !lower.includes('hello') && !lower.includes('hi') && !phoneMatch) {
+    collected.name = text;
   }
 }
 
@@ -182,9 +168,9 @@ async function buildBotResponse(session, userInput, req) {
     extractLeadData(userInput, session.leadData);
   }
 
-  const aiResult = await askAI(session, userInput || "Start the conversation");
+  const aiResult = await askAI(session, userInput || "How can I help you today?");
   if (!aiResult) {
-    return { message: "I'm having a brief technical moment. Please say hi to restart!", type: 'error' };
+    return { message: "I'm having a brief technical moment. Please say hi to restart! ✨", type: 'error' };
   }
 
   session.history.push({ role: 'bot', text: aiResult.text, ts: Date.now() });
@@ -194,7 +180,7 @@ async function buildBotResponse(session, userInput, req) {
   // If complete, generate WhatsApp link
   let waLink = null;
   if (isComplete) {
-    const waText = encodeURIComponent(`Hi, I'm ${session.leadData.name}. I'm interested in KW Srishti (${session.leadData.apartment_type || 'Homes'}). My budget is ${session.leadData.budget || 'flexible'}. Please call me at ${session.leadData.phone}.`);
+    const waText = encodeURIComponent(`Hi Priya! I'm ${session.leadData.name}. I'm interested in KW Srishti (${session.leadData.apartment_type || 'Homes'}). My phone is ${session.leadData.phone}.`);
     waLink = `https://wa.me/${SALES_WA}?text=${waText}`;
   }
 
@@ -205,7 +191,7 @@ async function buildBotResponse(session, userInput, req) {
     wa_link: waLink,
     social_links: {
       facebook: process.env.FB_LINK,
-      instagram: process.env.IG_LINK,
+      instagram: process.env.IG_LINK || "https://www.instagram.com/kworld_group/",
       linkedin: process.env.LI_LINK,
       twitter: process.env.TW_LINK,
       youtube: process.env.YT_LINK
@@ -219,26 +205,10 @@ function calcScore(d) {
   let s = 0;
   if (d.name) s += 10;
   if (d.phone) s += 30; // Phone is critical
-  if (d.email) s += 10;
-  
-  // High intent signals
-  const timeline = (d.timeline || '').toLowerCase();
-  if (timeline.includes('soon') || timeline.includes('immediately') || timeline.includes('1') || timeline.includes('month')) {
-    s += 25;
-  } else if (timeline.includes('3') || timeline.includes('6')) {
-    s += 15;
-  }
-
-  // Budget signals
-  const budget = (d.budget || '').toLowerCase();
-  if (budget.includes('crore') || budget.includes('90') || budget.includes('1.')) {
-    s += 20;
-  } else if (budget.includes('70') || budget.includes('80')) {
-    s += 10;
-  }
-
-  // Purpose
-  if (d.purpose && d.purpose.toLowerCase().includes('self')) s += 5;
+  if (d.apartment_type) s += 15;
+  if (d.budget) s += 15;
+  if (d.timeline) s += 20;
+  if (d.purpose) s += 10;
 
   return Math.min(s, 100);
 }
