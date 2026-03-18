@@ -16,8 +16,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--cream);
 
 /* HERO */
 .hero{min-height:100vh;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;overflow:hidden}
-.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 30%,rgba(201,168,76,.13) 0%,transparent 70%),linear-gradient(160deg,#0F0E0C 0%,#1C1A10 50%,#0F0E0C 100%);z-index:0}
-.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.04) 1px,transparent 1px);background-size:60px 60px;z-index:0}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(to bottom, rgba(15,14,12,0.8) 0%, rgba(15,14,12,0.3) 50%, rgba(15,14,12,0.9) 100%),url('images/kw_hero_bg.png') center/cover no-repeat;z-index:0}
 .hero-content{position:relative;z-index:1;max-width:820px}
 .badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(201,168,76,.4);padding:6px 18px;border-radius:100px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:2rem;animation:fadeDown .8s ease both}
 .hero h1{font-family:'Playfair Display',serif;font-size:clamp(3rem,8vw,6rem);line-height:1.05;font-weight:700;animation:fadeUp .9s .2s ease both}
@@ -54,8 +53,21 @@ section{padding:5rem 2rem}
 .f-title{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:.5rem}
 .f-desc{font-size:.83rem;color:var(--muted);line-height:1.7}
 
+/* GALLERY */
+.gallery{background:var(--dark)}
+.g-inner{max-width:1100px;margin:0 auto}
+.g-header{text-align:center;margin-bottom:3rem}
+.g-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem}
+.g-item{position:relative;border-radius:4px;overflow:hidden;cursor:pointer;aspect-ratio:4/3;border:1px solid rgba(201,168,76,.15)}
+.g-item img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s}
+.g-item:hover img{transform:scale(1.05)}
+.g-item::after{content:'';position:absolute;inset:0;background:linear-gradient(to top, rgba(15,14,12,0.8), transparent);opacity:0;transition:opacity 0.3s}
+.g-item:hover::after{opacity:1}
+.g-caption{position:absolute;bottom:1rem;left:1rem;color:var(--cream);font-size:.85rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;z-index:1;opacity:0;transform:translateY(10px);transition:all 0.3s}
+.g-item:hover .g-caption{opacity:1;transform:translateY(0)}
+
 /* PLANS */
-.plans{background:var(--dark)}
+.plans{background:var(--dark2)}
 .p-inner{max-width:1100px;margin:0 auto}
 .p-header{text-align:center;margin-bottom:3rem}
 .tabs{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:3rem}
@@ -72,15 +84,15 @@ section{padding:5rem 2rem}
 .p-row span:last-child{color:var(--cream)}
 
 /* AMENITIES */
-.amen{background:var(--dark2)}
-.a-inner{max-width:1100px;margin:0 auto}
-.a-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:1rem;margin-top:3rem}
-.a-pill{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid rgba(201,168,76,.12);border-radius:2px;font-size:.8rem;color:var(--muted);transition:all .2s}
-.a-pill:hover{border-color:var(--gold);color:var(--cream)}
-.dot{width:6px;height:6px;background:var(--gold);border-radius:50%;flex-shrink:0}
+.amen{background:var(--dark)}
+.a-inner{max-width:900px;margin:0 auto;text-align:center}
+.a-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:.8rem;margin-top:2.5rem}
+.a-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid rgba(201,168,76,.15);border-radius:100px;background:rgba(201,168,76,.03);font-size:.78rem;color:var(--muted);transition:all .2s;cursor:default}
+.a-pill:hover{border-color:var(--gold);color:var(--cream);background:rgba(201,168,76,.08)}
+.dot{width:4px;height:4px;background:var(--gold);border-radius:50%;flex-shrink:0}
 
 /* LOCATION */
-.location{background:var(--dark)}
+.location{background:var(--dark2)}
 .l-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start}
 .l-points{display:flex;flex-direction:column;gap:.8rem;margin-top:2rem}
 .l-point{display:flex;gap:1rem;padding:1rem;border-left:2px solid rgba(201,168,76,.2);transition:border-color .2s}
@@ -171,7 +183,7 @@ footer{background:#080807;border-top:1px solid rgba(201,168,76,.1);padding:3rem 
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-bg"></div><div class="hero-grid"></div>
+  <div class="hero-bg"></div>
   <div class="hero-content">
     <div class="badge">✦ KW Group · For Touching Heights</div>
     <h1>Luxury within<br><em>your Reach</em></h1>
@@ -208,6 +220,31 @@ footer{background:#080807;border-top:1px solid rgba(201,168,76,.1);padding:3rem 
   </div>
 </section>
 
+<!-- IMAGE GALLERY -->
+<section class="gallery">
+  <div class="g-inner">
+    <div class="g-header"><p class="sec-label">Gallery</p><h2 class="sec-title">A Glimpse of Luxury</h2></div>
+    <div class="g-grid">
+      <div class="g-item">
+        <img src="images/kw_gallery_1.png" alt="Luxury Living Room">
+        <div class="g-caption">Spacious Living Space</div>
+      </div>
+      <div class="g-item">
+        <img src="images/kw_gallery_2.png" alt="Grand Clubhouse">
+        <div class="g-caption">Grand Clubhouse</div>
+      </div>
+      <div class="g-item">
+        <img src="images/kw_gallery_3.png" alt="Premium Bedroom">
+        <div class="g-caption">Premium Bedrooms</div>
+      </div>
+      <div class="g-item">
+        <img src="images/kw_gallery_4.png" alt="Outdoor Amenities">
+        <div class="g-caption">Landscaped Outdoors</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- FLOOR PLANS -->
 <section class="plans" id="plans">
   <div class="p-inner">
@@ -240,20 +277,32 @@ footer{background:#080807;border-top:1px solid rgba(201,168,76,.1);padding:3rem 
   <div class="a-inner">
     <p class="sec-label">Lifestyle</p><h2 class="sec-title">40+ World-Class Amenities</h2>
     <div class="a-grid">
-      <div class="a-pill"><span class="dot"></span>Swimming Pool</div><div class="a-pill"><span class="dot"></span>Kids Pool & Jacuzzi</div>
-      <div class="a-pill"><span class="dot"></span>Gymnasium</div><div class="a-pill"><span class="dot"></span>Amphi Theatre</div>
-      <div class="a-pill"><span class="dot"></span>Musical Fountain</div><div class="a-pill"><span class="dot"></span>Lawn Tennis</div>
-      <div class="a-pill"><span class="dot"></span>Badminton Court</div><div class="a-pill"><span class="dot"></span>Cricket Net</div>
-      <div class="a-pill"><span class="dot"></span>Skating Rink</div><div class="a-pill"><span class="dot"></span>Community Hall</div>
-      <div class="a-pill"><span class="dot"></span>Billiards Room</div><div class="a-pill"><span class="dot"></span>Table Tennis</div>
-      <div class="a-pill"><span class="dot"></span>Steam & Sauna Bath</div><div class="a-pill"><span class="dot"></span>TV Lounge</div>
-      <div class="a-pill"><span class="dot"></span>Nursery School</div><div class="a-pill"><span class="dot"></span>Shopping Complex</div>
-      <div class="a-pill"><span class="dot"></span>Children's Park</div><div class="a-pill"><span class="dot"></span>Jogging Track</div>
-      <div class="a-pill"><span class="dot"></span>Party Lawn</div><div class="a-pill"><span class="dot"></span>Landscaped Garden</div>
-      <div class="a-pill"><span class="dot"></span>Water Falls</div><div class="a-pill"><span class="dot"></span>Rain Water Harvesting</div>
-      <div class="a-pill"><span class="dot"></span>Fire Fighting System</div><div class="a-pill"><span class="dot"></span>Internet in Every Flat</div>
-      <div class="a-pill"><span class="dot"></span>Creche</div><div class="a-pill"><span class="dot"></span>STP Plant</div>
-      <div class="a-pill"><span class="dot"></span>WTP with Softener</div><div class="a-pill"><span class="dot"></span>Lavish Entrance Gate</div>
+      <div class="a-pill"><span class="dot"></span>Swimming Pool</div>
+      <div class="a-pill"><span class="dot"></span>Kids Pool & Jacuzzi</div>
+      <div class="a-pill"><span class="dot"></span>Gymnasium</div>
+      <div class="a-pill"><span class="dot"></span>Amphi Theatre</div>
+      <div class="a-pill"><span class="dot"></span>Musical Fountain</div>
+      <div class="a-pill"><span class="dot"></span>Lawn Tennis</div>
+      <div class="a-pill"><span class="dot"></span>Badminton Court</div>
+      <div class="a-pill"><span class="dot"></span>Cricket Net</div>
+      <div class="a-pill"><span class="dot"></span>Skating Rink</div>
+      <div class="a-pill"><span class="dot"></span>Community Hall</div>
+      <div class="a-pill"><span class="dot"></span>Billiards Room</div>
+      <div class="a-pill"><span class="dot"></span>Table Tennis</div>
+      <div class="a-pill"><span class="dot"></span>Steam & Sauna Bath</div>
+      <div class="a-pill"><span class="dot"></span>TV Lounge</div>
+      <div class="a-pill"><span class="dot"></span>Nursery School</div>
+      <div class="a-pill"><span class="dot"></span>Shopping Complex</div>
+      <div class="a-pill"><span class="dot"></span>Children's Park</div>
+      <div class="a-pill"><span class="dot"></span>Jogging Track</div>
+      <div class="a-pill"><span class="dot"></span>Party Lawn</div>
+      <div class="a-pill"><span class="dot"></span>Landscaped Garden</div>
+      <div class="a-pill"><span class="dot"></span>Water Falls</div>
+      <div class="a-pill"><span class="dot"></span>Fire Fighting System</div>
+      <div class="a-pill"><span class="dot"></span>Internet in Every Flat</div>
+      <div class="a-pill"><span class="dot"></span>Creche</div>
+      <div class="a-pill"><span class="dot"></span>STP Plant</div>
+      <div class="a-pill"><span class="dot"></span>Lavish Entrance Gate</div>
     </div>
   </div>
 </section>
