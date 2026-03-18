@@ -60,8 +60,35 @@ async function upsertLead(sid, session, req = {}) {
       JSON.stringify(session.history || [])
     );
     console.log(`✅ Lead updated [${source}]: ${d.name || 'Anonymous'} (Score: ${score})`);
+    
+    // Alert sales team if lead is high-intent (has phone)
+    if (d.phone) {
+      notifySalesTeam(sid, d, score, source);
+    }
   } catch (err) {
     console.error('❌ Error upserting lead:', err.message);
+  }
+}
+
+function notifySalesTeam(sid, data, score, source) {
+  const alert = `
+***************************************************
+🔥 NEW HOT LEAD ALERT [${source.toUpperCase()}] 🔥
+***************************************************
+Name: ${data.name || 'Unknown'}
+Phone: ${data.phone}
+Type: ${data.apartment_type || 'N/A'}
+Budget: ${data.budget || 'N/A'}
+Score: ${score}/100
+Location: ${data.location || 'N/A'}
+Logic: Priya AI (Structured Extraction)
+***************************************************
+`;
+  console.log(alert);
+  
+  // Future: Integration with Telegram/Twilio/SendGrid would go here
+  if (process.env.SALES_ALERT_WEBHOOK) {
+    // fetch(process.env.SALES_ALERT_WEBHOOK, { ... })
   }
 }
 

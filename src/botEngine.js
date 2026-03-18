@@ -8,15 +8,74 @@ const PRIMARY_MODEL = process.env.HF_PRIMARY_MODEL || 'meta-llama/Llama-3.2-1B-I
 const SALES_WA = process.env.SALES_WHATSAPP_NUMBER || '919003068325';
 
 // Load Grounded Knowledge
+// Load Grounded Knowledge (Segmented for precision)
 const KNOWLEDGE_PATH = path.join(__dirname, 'knowledge.txt');
-let PROJECT_KNOWLEDGE = "KW Srishti is a luxury residential project by KW Group in Raj Nagar Extension, Ghaziabad.";
-try {
-  if (fs.existsSync(KNOWLEDGE_PATH)) {
-    PROJECT_KNOWLEDGE = fs.readFileSync(KNOWLEDGE_PATH, 'utf8');
+let KNOWLEDGE_SEGMENTS = { default: "KW Srishti is a luxury residential project by KW Group in Raj Nagar Extension, Ghaziabad." };
+
+function updateKnowledge() {
+  try {
+    if (fs.existsSync(KNOWLEDGE_PATH)) {
+      const fullText = fs.readFileSync(KNOWLEDGE_PATH, 'utf8');
+      // Segment by Section Header (e.g., "PRICING", "LOCATION")
+      const sections = fullText.split(/\n\n/);
+      sections.forEach(sec => {
+        const lines = sec.split('\n');
+        const header = lines[0].replace(':', '').trim().toUpperCase();
+        if (header.length > 3) KNOWLEDGE_SEGMENTS[header] = sec;
+      });
+      KNOWLEDGE_SEGMENTS.all = fullText;
+    }
+  } catch (err) {
+    console.error('Error loading knowledge.txt:', err);
   }
-} catch (err) {
-  console.error('Error loading knowledge.txt:', err);
 }
+updateKnowledge();
+
+// ── PROPERTY ASSETS (Images & Cards) ──
+const PROPERTY_ASSETS = {
+  '1BHK': {
+    image: 'images/tower A 1 bhk.jpg',
+    title: 'Tower A - 1 BHK Studio',
+    area: '740 sq.ft.',
+    tower: 'Tower A',
+    status: 'Ready to Move'
+  },
+  '1BHK STUDY': {
+    image: 'images/tower A 1bhk+Study.jpg',
+    title: 'Tower A - 1 BHK + Study',
+    area: '875 sq.ft.',
+    tower: 'Tower A',
+    status: 'Ready to Move'
+  },
+  '2BHK': {
+    image: 'images/tower B 2 bhk.jpg',
+    title: 'Tower B - 2 BHK Comfort',
+    area: '985 sq.ft.',
+    tower: 'Tower B',
+    status: 'Ready to Move'
+  },
+  '2BHK STUDY': {
+    image: 'images/tower I 2bhk + Study.jpg',
+    title: 'Tower I - 2 BHK + Study',
+    area: '1220 sq.ft.',
+    tower: 'Tower I',
+    status: 'New Project'
+  },
+  '3BHK': {
+    image: 'images/tower H 3 bhk.jpg',
+    title: 'Tower H - 3 BHK Elite',
+    area: '1485 sq.ft.',
+    tower: 'Tower H',
+    status: 'Ready to Move'
+  },
+  'PENTHOUSE': {
+    image: 'images/tower D 3 bhk penthouse.jpg',
+    title: 'Tower D - Luxury Penthouse',
+    area: '1900 sq.ft.',
+    tower: 'Tower D',
+    status: 'Limited Availability'
+  }
+};
 
 // ── AGENDA (Real Estate Industry) ──
 const AGENDA = [
@@ -41,6 +100,15 @@ async function askAI(session, userInput) {
   const missing = AGENDA.filter(a => !collected[a.key] || collected[a.key] === 'pending');
   const nextTarget = missing[0];
 
+  // Simple RAG retrieval: find top 2 sections most relevant to user input
+  const lowerInput = userInput.toLowerCase();
+  const relevantSections = Object.keys(KNOWLEDGE_SEGMENTS)
+    .filter(k => k !== 'all' && k !== 'default')
+    .filter(k => lowerInput.includes(k.toLowerCase()) || KNOWLEDGE_SEGMENTS[k].toLowerCase().includes(lowerInput))
+    .map(k => KNOWLEDGE_SEGMENTS[k]);
+  
+  const context = relevantSections.length > 0 ? relevantSections.join('\n\n') : KNOWLEDGE_SEGMENTS.all;
+
   const systemPrompt = `You are Priya, a friendly, professional, and helpful sales advisor for KW Srishti (by KW Group).
 KW Srishti is a luxury residential project in NH-58, Raj Nagar Extension, Ghaziabad.
 
@@ -63,10 +131,11 @@ INSTRUCTIONS:
    - Try to infer **Demographics** (e.g., family size) to recommend 2BHK vs 3BHK.
 5. If they give a phone number, tell them: "Our consultant will call you shortly with the best deals! ✨"
 6. PROVIDE SUGGESTED BUTTONS in this format: [BUTTON: Label]. Max 4 buttons.
-7. Keep responses concise (under 100 words).
+7. **VISUALS**: You can now "show" floor plans and property cards. Mention them in your text if you think it helps (e.g., "Here is the 3BHK layout for you!").
+8. Keep responses concise (under 100 words).
 
-PROJECT KNOWLEDGE:
-${PROJECT_KNOWLEDGE}
+PROJECT KNOWLEDGE (Relevant Context):
+${context}
 
 USER INPUT: "${userInput}"`;
 
@@ -129,47 +198,133 @@ USER INPUT: "${userInput}"`;
   return null;
 }
 
-// ── DATA EXTRACTION (Pseudo-NLP) ──
-function extractLeadData(text, collected) {
+// ── AI ENTITY EXTRACTION (Multi-Provider) ──
+async function extractEntitiesAI(text) {
+  const token = process.env.HUGGINGFACE_TOKEN;
+  const orKey = process.env.OPENROUTER_API_KEY;
+  
+  if (!token && !orKey) {
+    console.warn('⚠️ No AI tokens found for extraction (HF or OpenRouter)');
+    return null;
+  }
+
+  const extractionPrompt = `Extract real estate lead details from this message into a JSON object. 
+Fields: name, phone (10 digits), apartment_type (e.g. 2BHK), budget, purpose (Investment/Self), timeline, location, demographics.
+If a field is not present, set it to null.
+Only return the JSON. No preamble.
+
+USER MESSAGE: "${text}"`;
+
+  // Try HF First
+  if (token) {
+    try {
+      console.log('📡 Attempting HF Extraction...');
+      const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'Qwen/Qwen2.5-1.5B-Instruct',
+          messages: [{ role: 'user', content: extractionPrompt }],
+          max_tokens: 150,
+          temperature: 0.1
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || "";
+        console.log('✅ HF Extraction raw content:', content);
+        const jsonStr = content.replace(/```json|```/g, '').trim();
+        return JSON.parse(jsonStr);
+      } else {
+        const errData = await response.json();
+        console.warn('⚠️ HF Extraction HTTP error:', response.status, errData);
+      }
+    } catch (err) {
+      console.warn('⚠️ HF Extraction failed:', err.message);
+    }
+  }
+
+  // Try OpenRouter Fallback
+  if (orKey) {
+    try {
+      console.log('📡 Attempting OpenRouter Extraction...');
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${orKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'mistralai/mistral-7b-instruct:free',
+          messages: [{ role: 'user', content: extractionPrompt }],
+          max_tokens: 150
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || "";
+        console.log('✅ OR Extraction raw content:', content);
+        const jsonStr = content.replace(/```json|```/g, '').trim();
+        return JSON.parse(jsonStr);
+      } else {
+        const errData = await response.json();
+        console.warn('⚠️ OR Extraction HTTP error:', response.status, errData);
+      }
+    } catch (err) {
+      console.error('❌ All AI Extraction providers failed:', err.message);
+    }
+  }
+
+  return null;
+}
+
+// ── DATA EXTRACTION (Pseudo-NLP + AI) ──
+async function extractLeadData(text, collected) {
   const lower = text.toLowerCase();
   
-  // Language Detection (Simple)
+  // 1. Language Detection (Immediate)
   if (/[अ-ज्ञ]/.test(text)) collected.language = 'Hindi';
   else if (!collected.language) collected.language = 'English';
 
-  // Phone: match 10 digits
+  // 2. AI Extraction (Async)
+  const aiExtracted = await extractEntitiesAI(text);
+  if (aiExtracted) {
+    Object.keys(aiExtracted).forEach(key => {
+      if (aiExtracted[key] && (!collected[key] || collected[key] === 'pending')) {
+        collected[key] = aiExtracted[key];
+      }
+    });
+  }
+
+  // 3. Regex Fallback (Safety Net)
   const phoneMatch = text.match(/\d{10}/);
-  if (phoneMatch) collected.phone = phoneMatch[0];
+  if (phoneMatch && !collected.phone) collected.phone = phoneMatch[0];
 
-  // BHK requirement
-  if (lower.includes('bhk') || lower.includes('1') || lower.includes('2') || lower.includes('3') || lower.includes('penthouse')) {
-    collected.apartment_type = text;
+  // Smarter Budget (Lakhs/Crores)
+  const budgetMatch = text.match(/(\d+\.?\d*)\s*(lakh|lac|cr|crore|cr\.)/i);
+  if (budgetMatch && !collected.budget) {
+    collected.budget = budgetMatch[0];
   }
 
-  // Location detection (hints)
-  const locations = ['delhi', 'noida', 'gurgaon', 'ghaziabad', 'meerut', 'hapur', 'mumbai'];
-  locations.forEach(loc => {
-    if (lower.includes(loc)) collected.location = loc.charAt(0).toUpperCase() + loc.slice(1);
-  });
-
-  // Purpose
-  if (lower.includes('self') || lower.includes('invest') || lower.includes('rent')) {
-    collected.purpose = text;
+  // Smarter BHK
+  const bhkMatch = text.match(/([1234])\s*(bhk|rk)/i);
+  if (bhkMatch && (!collected.apartment_type || collected.apartment_type === 'pending')) {
+    collected.apartment_type = bhkMatch[0].toUpperCase();
+  } else if (lower.includes('penthouse') && (!collected.apartment_type || collected.apartment_type === 'pending')) {
+    collected.apartment_type = 'PENTHOUSE';
   }
 
-  // Budget
-  if (lower.includes('lakh') || lower.includes('crore') || lower.includes('budget') || lower.includes('cr')) {
-    collected.budget = text;
+  // Location (Existing logic)
+  if (!collected.location) {
+    const locations = ['delhi', 'noida', 'gurgaon', 'ghaziabad', 'meerut', 'hapur', 'mumbai'];
+    locations.forEach(loc => {
+      if (lower.includes(loc)) collected.location = loc.charAt(0).toUpperCase() + loc.slice(1);
+    });
   }
 
-  // Timeline
-  if (lower.includes('month') || lower.includes('year') || lower.includes('immediate')) {
-    collected.timeline = text;
-  }
-
-  // Name extraction (simple fallback)
-  if (!collected.name && text.length > 2 && text.length < 30 && !lower.includes('hello') && !lower.includes('hi') && !phoneMatch) {
-    collected.name = text;
+  // Name extraction (Refined fallback)
+  if (!collected.name && text.split(' ').length < 4 && !lower.includes('hi') && !lower.includes('hello') && !phoneMatch && !budgetMatch) {
+    const cleanName = text.replace(/[^a-zA-Z\s]/g, '').trim();
+    if (cleanName.length > 2 && cleanName.length < 20) {
+      collected.name = cleanName;
+    }
   }
 }
 
@@ -180,12 +335,17 @@ async function buildBotResponse(session, userInput, req) {
 
   if (userInput) {
     session.history.push({ role: 'user', text: userInput, ts: Date.now() });
-    extractLeadData(userInput, session.leadData);
+    await extractLeadData(userInput, session.leadData);
   }
 
-  const aiResult = await askAI(session, userInput || "How can I help you today?");
+  let aiResult = await askAI(session, userInput || "How can I help you today?");
   if (!aiResult) {
-    return { message: "I'm having a brief technical moment. Please say hi to restart! ✨", type: 'error' };
+    console.warn('⚠️ AI Response failed. Falling back to structured data summary.');
+    const missing = AGENDA.filter(a => !session.leadData[a.key] || session.leadData[a.key] === 'pending');
+    const msg = missing.length > 0 
+      ? `Thanks for the info! Could you also tell me about your **${missing[0].label}** so I can find the best deals for you? ✨`
+      : `I've noted your preferences! A property expert will contact you shortly with personalized plans. 📞`;
+    aiResult = { text: msg, buttons: ["Book Site Visit", "Download Brochure"] };
   }
 
   session.history.push({ role: 'bot', text: aiResult.text, ts: Date.now() });
@@ -199,11 +359,34 @@ async function buildBotResponse(session, userInput, req) {
     waLink = `https://wa.me/${SALES_WA}?text=${waText}`;
   }
 
+  // Attach Media & Cards
+  const media = [];
+  const cards = [];
+  
+  const type = (session.leadData.apartment_type || "").toUpperCase();
+  let assetKey = null;
+  if (type.includes('1BHK') || type.includes('1 BHK')) assetKey = type.includes('STUD') ? '1BHK STUDY' : '1BHK';
+  else if (type.includes('2BHK') || type.includes('2 BHK')) assetKey = type.includes('STUD') ? '2BHK STUDY' : '2BHK';
+  else if (type.includes('3BHK') || type.includes('3 BHK')) assetKey = '3BHK';
+  else if (type.includes('PENTHOUSE')) assetKey = 'PENTHOUSE';
+
+  if (assetKey && PROPERTY_ASSETS[assetKey]) {
+    cards.push(PROPERTY_ASSETS[assetKey]);
+    // Also attach floor plan as image if available
+    const fpMap = { '1BHK': 'fp_1bhk.png', '2BHK': 'fp_2bhk.png', '3BHK': 'fp_3bhk.png', 'PENTHOUSE': 'fp_ph.png' };
+    const fpBase = assetKey.split(' ')[0];
+    if (fpMap[fpBase]) {
+      media.push({ type: 'image', url: `images/${fpMap[fpBase]}` });
+    }
+  }
+
   const response = {
     message: aiResult.text,
     quick_replies: aiResult.buttons.length > 0 ? aiResult.buttons : null,
     is_complete: isComplete,
     wa_link: waLink,
+    media: media.length > 0 ? media : null,
+    cards: cards.length > 0 ? cards : null,
     social_links: {
       facebook: process.env.FB_LINK,
       instagram: process.env.IG_LINK || "https://www.instagram.com/kworld_group/",
@@ -233,4 +416,4 @@ function calcScore(d) {
   return Math.min(s, 100);
 }
 
-module.exports = { buildBotResponse, calcScore };
+module.exports = { buildBotResponse, calcScore, extractEntitiesAI, extractLeadData };
