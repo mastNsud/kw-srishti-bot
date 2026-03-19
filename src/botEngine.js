@@ -1,6 +1,7 @@
 const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
+const { getOptimizedUrl, mapLocalToPublicId } = require('./utils/cloudinaryService');
 
 // ── CONFIG ──
 const HF_TOKEN = process.env.HUGGINGFACE_TOKEN;
@@ -371,12 +372,23 @@ async function buildBotResponse(session, userInput, req) {
   else if (type.includes('PENTHOUSE')) assetKey = 'PENTHOUSE';
 
   if (assetKey && PROPERTY_ASSETS[assetKey]) {
-    cards.push(PROPERTY_ASSETS[assetKey]);
+    const asset = PROPERTY_ASSETS[assetKey];
+    const pubId = mapLocalToPublicId(asset.image);
+    const optimizedCardUrl = getOptimizedUrl(pubId, { card: true }) || asset.image;
+    
+    cards.push({
+      ...asset,
+      image: optimizedCardUrl
+    });
+
     // Also attach floor plan as image if available
     const fpMap = { '1BHK': 'fp_1bhk.png', '2BHK': 'fp_2bhk.png', '3BHK': 'fp_3bhk.png', 'PENTHOUSE': 'fp_ph.png' };
     const fpBase = assetKey.split(' ')[0];
     if (fpMap[fpBase]) {
-      media.push({ type: 'image', url: `images/${fpMap[fpBase]}` });
+      const fpLocalPath = `images/${fpMap[fpBase]}`;
+      const fpPubId = mapLocalToPublicId(fpLocalPath);
+      const optimizedFpUrl = getOptimizedUrl(fpPubId) || fpLocalPath;
+      media.push({ type: 'image', url: optimizedFpUrl });
     }
   }
 
