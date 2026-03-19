@@ -91,5 +91,19 @@ Logic: Priya AI (Structured Extraction)
     // fetch(process.env.SALES_ALERT_WEBHOOK, { ... })
   }
 }
+async function logChatEvent(sid, role, text, meta = {}) {
+  try {
+    const db = getDB();
+    await db.prepare('INSERT INTO events (session_id, event_type, payload) VALUES ($1,$2,$3)')
+      .run(sid, 'chat_message', JSON.stringify({ role, text, ...meta }));
+    
+    // Periodically update the full conversation transcript in the leads table
+    await db.prepare('UPDATE leads SET conversation = conversation || $2 || \'\n\' WHERE session_id = $1')
+      .run(sid, `${role.toUpperCase()}: ${text}`);
 
-module.exports = { upsertLead };
+  } catch (err) {
+    console.error('❌ Error logging chat event:', err.message);
+  }
+}
+
+module.exports = { upsertLead, logChatEvent };

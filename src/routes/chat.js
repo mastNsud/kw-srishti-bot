@@ -45,6 +45,10 @@ router.post('/message', async (req, res) => {
 
     const result = await buildBotResponse(session, userInput, req);
 
+    // Log Chat Events
+    await logChatEvent(sid, 'user', userInput, { source: session.source });
+    await logChatEvent(sid, 'bot', result.message, { source: session.source });
+
     await saveSession(sid, session);
 
     // If lead data is complete, upsert to leads table

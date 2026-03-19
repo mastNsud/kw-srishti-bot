@@ -17,6 +17,10 @@ router.post('/webhook', async (req, res) => {
     if (!text) return res.send('<Response></Response>');
 
     console.log(`📱 [WhatsApp] Message from ${phone} (${ProfileName || 'User'}): ${text}`);
+    
+    // Log User Message
+    const { logChatEvent } = require('../leadService');
+    await logChatEvent(phone, 'user', text, { source: 'whatsapp', name: ProfileName });
 
     try {
         // Use phone number as Session ID for persistence across WhatsApp messages
@@ -30,6 +34,9 @@ router.post('/webhook', async (req, res) => {
 
         // Build Priya's AI response
         const result = await botEngine.buildBotResponse(session, text, req);
+        
+        // Log Bot Message
+        await logChatEvent(phone, 'bot', result.message, { source: 'whatsapp' });
         
         // Save session state
         await sessionStore.saveSession(phone, session);

@@ -6,7 +6,7 @@ const { getOptimizedUrl, mapLocalToPublicId } = require('./utils/cloudinaryServi
 // ── CONFIG ──
 const HF_TOKEN = process.env.HUGGINGFACE_TOKEN;
 const PRIMARY_MODEL = process.env.HF_PRIMARY_MODEL || 'meta-llama/Llama-3.2-1B-Instruct';
-const SALES_WA = process.env.SALES_WHATSAPP_NUMBER || '919003068325';
+const SALES_WA = process.env.SALES_WHATSAPP_NUMBER || '14155238886';
 
 // Load Grounded Knowledge
 // Load Grounded Knowledge (Segmented for precision)
