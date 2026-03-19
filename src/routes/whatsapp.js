@@ -1,97 +1,71 @@
 const express = require('express');
 const router = express.Router();
+const twilio = require('twilio');
 const botEngine = require('../botEngine');
-const fetch = require('node-fetch'); // Ensure fetch is available
-
-// In-memory sessions for WhatsApp (Simple implementation)
-const waSessions = {};
+const sessionStore = require('../sessionStore');
 
 /**
- * WAHA Webhook Handler
+ * Twilio WhatsApp Webhook
  */
 router.post('/webhook', async (req, res) => {
-    const { event, payload } = req.body;
+    const { Body, From, ProfileName } = req.body;
+    
+    // Twilio From is in format "whatsapp:+91XXXXXXXXXX"
+    const phone = From ? From.replace('whatsapp:', '') : 'unknown';
+    const text = Body || "";
 
-    // Support both 'message.upsert' and plain 'message' events from WAHA
-    if (event !== 'message.upsert' && event !== 'message') {
-        return res.sendStatus(200);
-    }
+    if (!text) return res.send('<Response></Response>');
 
-    const message = payload;
-    const from = message.from; // Sender ID: 91XXXXXXXXXX@c.us
-    const text = message.body || "";
-
-    // Ignore empty messages or messages FROM the bot itself
-    if (!text || message.fromMe) return res.sendStatus(200);
-
-    console.log(`📱 [WhatsApp] Message from ${from}: ${text}`);
-
-    // Initialize or retrieve session
-    if (!waSessions[from]) {
-        waSessions[from] = {
-            id: `wa_${from}`,
-            leadData: {},
-            history: []
-        };
-    }
-
-    const session = waSessions[from];
+    console.log(`📱 [WhatsApp] Message from ${phone} (${ProfileName || 'User'}): ${text}`);
 
     try {
-        // Build the AI response using Priya's engine
-        const result = await botEngine.buildBotResponse(session, text);
-        
-        if (result && result.message) {
-            const wahaUrl = process.env.WAHA_URL || 'http://localhost:3000';
-            const wahaKey = process.env.WAHA_API_KEY;
-            const buttons = result.buttons || [];
-
-            console.log(`🤖 [WhatsApp] Priya replying to ${from} with ${buttons.length} buttons`);
-
-            let endpoint = '/api/sendText';
-            let body = {
-                session: "default",
-                chatId: from,
-                text: result.message
-            };
-
-            // Interactive UI Logic
-            if (buttons.length > 0 && buttons.length <= 3) {
-                // Use Buttons (1-3 items)
-                endpoint = '/api/sendButtons';
-                body.buttons = buttons.map(btn => ({
-                    id: btn.toLowerCase().replace(/\s+/g, '_'),
-                    text: btn
-                }));
-            } else if (buttons.length > 3) {
-                // Use List (4+ items)
-                endpoint = '/api/sendList';
-                body.button = "Options"; // Text on the button that opens the list
-                body.title = "Please choose an option";
-                body.sections = [{
-                    title: "Project Menu",
-                    rows: buttons.map(btn => ({
-                        id: btn.toLowerCase().replace(/\s+/g, '_'),
-                        title: btn
-                    }))
-                }];
-                // Note: body.text is still used as the message content before the list
+        // Use phone number as Session ID for persistence across WhatsApp messages
+        let session = await sessionStore.getOrCreateSession(phone);
+        if (session) {
+            // Update lead data if ProfileName is provided and name is currently empty
+            if (ProfileName && (!session.leadData.name || session.leadData.name === 'pending')) {
+                session.leadData.name = ProfileName;
             }
-
-            await fetch(`${wahaUrl}${endpoint}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Api-Key': wahaKey
-                },
-                body: JSON.stringify(body)
-            });
         }
+
+        // Build Priya's AI response
+        const result = await botEngine.buildBotResponse(session, text, req);
+        
+        // Save session state
+        await sessionStore.saveSession(phone, session);
+
+        // Generate TwiML Response
+        const twiml = new twilio.twiml.MessagingResponse();
+        const msg = twiml.message();
+        
+        let replyText = result.message;
+
+        // If bot suggests buttons, append them as text (WhatsApp Sandbox doesn't support interactive buttons easily via TwiML yet)
+        if (result.quick_replies && result.quick_replies.length > 0) {
+            replyText += "\n\nOptions:\n" + result.quick_replies.map((q, i) => `${i+1}. ${q}`).join('\n');
+        }
+
+        msg.body(replyText);
+
+        // Attach media (e.g., floor plans) if available
+        if (result.media && result.media.length > 0) {
+            const firstImage = result.media.find(m => m.type === 'image');
+            if (firstImage) {
+                // Ensure URL is absolute for Twilio
+                const baseUrl = process.env.PUBLIC_URL || `https://${req.get('host')}`;
+                const imageUrl = firstImage.url.startsWith('http') ? firstImage.url : `${baseUrl}/${firstImage.url}`;
+                msg.media(imageUrl);
+            }
+        }
+
+        res.type('text/xml').send(twiml.toString());
     } catch (err) {
         console.error('❌ WhatsApp Webhook Error:', err);
+        if (err.stack) console.error(err.stack);
+        const twiml = new twilio.twiml.MessagingResponse();
+        twiml.message("I'm having a brief technical moment. Please try again later! ✨");
+        res.type('text/xml').send(twiml.toString());
     }
-
-    res.sendStatus(200);
 });
 
 module.exports = router;

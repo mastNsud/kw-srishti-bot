@@ -19,6 +19,7 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: process.env.ALLOWED_ORIGINS || '*' }));
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
 // Rate limiting
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, message: { error: 'Too many requests' } });
@@ -34,6 +35,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/chat', chatRouter);
 app.use('/api/leads', leadsRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/whatsapp', whatsappRouter);
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
