@@ -57,13 +57,13 @@ router.post('/webhook', async (req, res) => {
         // Attach media (e.g., floor plans) if available
         if (result.media && result.media.length > 0) {
             const firstImage = result.media.find(m => m.type === 'image');
-            if (firstImage) {
-                // Ensure URL is absolute for Twilio
-                const baseUrl = process.env.PUBLIC_URL || `https://${req.get('host')}`;
-                const imageUrl = firstImage.url.startsWith('http') ? firstImage.url : `${baseUrl}/${firstImage.url}`;
-                msg.media(imageUrl);
+            // ONLY attach media if it's a valid external HTTP URL (e.g. Cloudinary)
+            // Twilio drops the entire message if a local file returns 404.
+            if (firstImage && firstImage.url.startsWith('http')) {
+                msg.media(firstImage.url);
             }
         }
+
 
         res.type('text/xml').send(twiml.toString());
     } catch (err) {
