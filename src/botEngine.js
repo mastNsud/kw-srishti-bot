@@ -226,7 +226,7 @@ USER MESSAGE: "${text}"`;
         body: JSON.stringify({
           model: PRIMARY_MODEL,
           messages: [{ role: 'user', content: extractionPrompt }],
-          max_tokens: 150,
+          max_tokens: 300,
           temperature: 0.1
         })
       });
@@ -255,7 +255,7 @@ USER MESSAGE: "${text}"`;
         body: JSON.stringify({
           model: process.env.OPENROUTER_MODEL || 'qwen/qwen-2-72b-instruct:free',
           messages: [{ role: 'user', content: extractionPrompt }],
-          max_tokens: 150
+          max_tokens: 300
         })
       });
       if (response.ok) {
