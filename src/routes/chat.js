@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { getDB } = require('../db');
 const { getOrCreateSession, saveSession } = require('../sessionStore');
 const { buildBotResponse } = require('../botEngine');
-const { upsertLead } = require('../leadService');
+const { upsertLead, logChatEvent } = require('../leadService');
 
 const router = express.Router();
 

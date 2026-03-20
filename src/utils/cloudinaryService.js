@@ -1,12 +1,15 @@
 const cloudinary = require('cloudinary').v2;
 
 // Configure Cloudinary from Env
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true
-});
+const hasCloudinary = !!process.env.CLOUDINARY_CLOUD_NAME;
+if (hasCloudinary) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true
+  });
+}
 
 /**
  * Generates an optimized Cloudinary URL for a given public ID.
@@ -15,6 +18,7 @@ cloudinary.config({
  * @returns {string} - The optimized URL.
  */
 function getOptimizedUrl(publicId, options = {}) {
+  if (!hasCloudinary) return null;
   try {
     const defaultOptions = {
       fetch_format: 'auto',

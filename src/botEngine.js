@@ -224,7 +224,7 @@ USER MESSAGE: "${text}"`;
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'Qwen/Qwen2.5-1.5B-Instruct',
+          model: PRIMARY_MODEL,
           messages: [{ role: 'user', content: extractionPrompt }],
           max_tokens: 150,
           temperature: 0.1
@@ -253,7 +253,7 @@ USER MESSAGE: "${text}"`;
         method: 'POST',
         headers: { 'Authorization': `Bearer ${orKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'mistralai/mistral-7b-instruct:free',
+          model: process.env.OPENROUTER_MODEL || 'qwen/qwen-2-72b-instruct:free',
           messages: [{ role: 'user', content: extractionPrompt }],
           max_tokens: 150
         })
