@@ -11,6 +11,7 @@ const whatsappRouter = require('./routes/whatsapp');
 const adminRouter = require('./routes/admin');
 const { startTelegramBot } = require('./telegramBot');
 const { startBackgroundSync } = require('./leadService');
+const { syncKnowledgeBase } = require('./vectorService');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -59,6 +60,10 @@ app.get('*', (req, res) => {
 
 async function start() {
   await initDB();
+  
+  // Sync knowledge base vectors (Async but non-blocking startup)
+  syncKnowledgeBase().catch(err => console.error('❌ Vector Sync Failed:', err));
+
   app.listen(PORT, () => {
     console.log(`🚀 KW Srishti Bot running on port ${PORT}`);
     startTelegramBot();

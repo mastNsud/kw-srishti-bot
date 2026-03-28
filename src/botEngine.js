@@ -2,15 +2,17 @@ const fetch = require('node-fetch');
 const fs = require('fs');
 const path = require('path');
 const { getOptimizedUrl, mapLocalToPublicId } = require('./utils/cloudinaryService');
+const { searchKnowledge } = require('./vectorService');
 
 // ── CONFIG ──
 const HF_TOKEN = process.env.HUGGINGFACE_TOKEN;
 const PRIMARY_MODEL = process.env.HF_PRIMARY_MODEL || 'meta-llama/Llama-3.2-1B-Instruct';
 const SALES_WA = process.env.SALES_WHATSAPP_NUMBER || '14155238886';
+const BROCHURE_URL = process.env.BROCHURE_URL || 'https://www.kwgroup.in/kw-srishti/brochure.pdf';
+const SITE_VISIT_TEL = process.env.SITE_VISIT_TEL || '+919310908888';
 
-// Load Grounded Knowledge
-// Load Grounded Knowledge (Segmented for precision)
-const KNOWLEDGE_PATH = path.join(__dirname, 'knowledge.txt');
+// Load Grounded Knowledge (Legacy fallback)
+const KNOWLEDGE_PATH = path.join(__dirname, '../knowledge.txt');
 let KNOWLEDGE_SEGMENTS = { default: "KW Srishti is a luxury residential project by KW Group in Raj Nagar Extension, Ghaziabad." };
 
 function updateKnowledge() {
@@ -88,7 +90,7 @@ const AGENDA = [
 ];
 
 // ── AI ENGINE via Hugging Face Router ──
-async function askAI(session, userInput) {
+async function askAI(session, userInput, context = "") {
   if (!HF_TOKEN) {
     console.error('❌ HUGGINGFACE_TOKEN not set');
     return null;
@@ -105,27 +107,22 @@ async function askAI(session, userInput) {
     .filter(k => lowerInput.includes(k.toLowerCase()) || KNOWLEDGE_SEGMENTS[k].toLowerCase().includes(lowerInput))
     .map(k => KNOWLEDGE_SEGMENTS[k]);
   
-  const context = relevantSections.length > 0 ? relevantSections.join('\n\n') : KNOWLEDGE_SEGMENTS.all;
+  const contextData = relevantSections.length > 0 ? relevantSections.join('\n\n') : KNOWLEDGE_SEGMENTS.all;
 
-  const systemPrompt = `You are Priya, a friendly, professional, and helpful sales advisor for KW Srishti (by KW Group).
-KW Srishti is a luxury residential project in NH-58, Raj Nagar Extension, Ghaziabad.
+  const systemPrompt = `You are Priya, a Senior Sales Advisor for KW Srishti.
+PROJECT CONTEXT:
+${contextData || KNOWLEDGE_SEGMENTS.default}
 
-GOAL: Converse naturally with the user while subtly guiding them to provide real estate lead qualification details.
-AGENDA (Internal Only): Name, Phone, Unit, Budget, Timeline.
+USER PROFILE: ${JSON.stringify(collected)}
 
-CURRENT DATA (DO NOT MIRROR OR ECHO THIS):
-${JSON.stringify(collected, null, 2)}
-
-STRICT RULES:
-1. **NO SUMMARIES**: NEVER output a list of fields like "Good Name: [Value]". Never summarize what you know or what is missing.
-2. **BE CONCISE**: Keep your response under 60 words. Be warm but brief.
-3. **HUMAN TONE**: Talk like a real person. If you know the user's name, use it naturally (e.g., "Right, Rahul! We actually have...").
-4. **NUDGE FOR ONE**: If info is missing, answer the user's question first, then gracefully nudge for *just one* missing detail at a turn.
-5. **NO METADATA**: Do not reveal internal labels (labels like "Apartment Type" or "Agenda").
-6. **PHONE**: Once you have the name, prioritize getting the Phone Number for sharing brochures on WhatsApp.
-
-PROJECT KNOWLEDGE:
-${context}
+YOUR MISSION:
+1. Answer queries accurately using PROJECT CONTEXT.
+2. If info is missing, nudge for: ${nextTarget ? nextTarget.label : 'visit'}.
+3. Keep responses warm, professional and concise (under 3 sentences).
+4. Use [BUTTON: Label] for quick actions. Examples: [BUTTON: Download Brochure], [BUTTON: Book Site Visit].
+5. IMPORTANT: DO NOT hallucinates prices. If not in context, ask them to "Download Brochure" or "Connect with Sales".
+6. NO SUMMARIES: NEVER output a list of fields like "Name: [Value]".
+7. PRIORITY: Once you have the name, prioritize getting the Phone Number.
 
 USER INPUT: "${userInput}"`;
 
@@ -333,13 +330,24 @@ async function buildBotResponse(session, userInput, req) {
   session.leadData = session.leadData || {};
   session.history = session.history || [];
 
+  // 1. Semantic Context Retrieval
+  let context = "";
   if (userInput) {
+    context = await searchKnowledge(userInput);
     session.history.push({ role: 'user', text: userInput, ts: Date.now() });
     await extractLeadData(userInput, session.leadData);
     console.log('📝 Current Lead Data state:', JSON.stringify(session.leadData));
   }
 
-  let aiResult = await askAI(session, userInput || "How can I help you today?");
+  // 2. Intent Detection (Simple keyword based for media control)
+  const lowerInput = (userInput || "").toLowerCase();
+  const intents = {
+    visuals: /photo|image|view|floor|plan|map|look|see|inside|exterior/i.test(lowerInput),
+    brochure: /brochure|pdf|document|details/i.test(lowerInput),
+    budget: /price|cost|budget|amount|worth/i.test(lowerInput)
+  };
+
+  let aiResult = await askAI(session, userInput || "How can I help you today?", context);
   if (!aiResult) {
     console.warn('⚠️ AI Response failed. Falling back to structured data summary.');
     const missing = AGENDA.filter(a => !session.leadData[a.key] || session.leadData[a.key] === 'pending');
@@ -381,20 +389,33 @@ async function buildBotResponse(session, userInput, req) {
       image: optimizedCardUrl
     });
 
-    // Also attach floor plan as image if available
-    const fpMap = { '1BHK': 'fp_1bhk.png', '2BHK': 'fp_2bhk.png', '3BHK': 'fp_3bhk.png', 'PENTHOUSE': 'fp_ph.png' };
-    const fpBase = assetKey.split(' ')[0];
-    if (fpMap[fpBase]) {
-      const fpLocalPath = `images/${fpMap[fpBase]}`;
-      const fpPubId = mapLocalToPublicId(fpLocalPath);
-      const optimizedFpUrl = getOptimizedUrl(fpPubId) || fpLocalPath;
-      media.push({ type: 'image', url: optimizedFpUrl });
+    // Only attach floor plan if explicitly requested (Intent: Visuals) OR if we are specifically showing a unit
+    if (intents.visuals) {
+      const fpMap = { '1BHK': 'fp_1bhk.png', '2BHK': 'fp_2bhk.png', '3BHK': 'fp_3bhk.png', 'PENTHOUSE': 'fp_ph.png' };
+      const fpBase = assetKey.split(' ')[0];
+      if (fpMap[fpBase]) {
+        const fpLocalPath = `images/${fpMap[fpBase]}`;
+        const fpPubId = mapLocalToPublicId(fpLocalPath);
+        const optimizedFpUrl = getOptimizedUrl(fpPubId) || fpLocalPath;
+        media.push({ type: 'image', url: optimizedFpUrl });
+      }
     }
+  }
+
+  // Action Buttons (Premium interactive links)
+  const action_buttons = [];
+  if (intents.brochure) {
+    action_buttons.push({ label: '📄 Download Brochure', url: BROCHURE_URL, type: 'url' });
+  }
+  if (isComplete) {
+    action_buttons.push({ label: '✅ Book Site Visit', url: `tel:${SITE_VISIT_TEL}`, type: 'tel' });
+    action_buttons.push({ label: '💬 Chat on WhatsApp', url: waLink, type: 'url' });
   }
 
   const response = {
     message: aiResult.text,
     quick_replies: aiResult.buttons.length > 0 ? aiResult.buttons : null,
+    action_buttons: action_buttons.length > 0 ? action_buttons : null,
     is_complete: isComplete,
     wa_link: waLink,
     media: media.length > 0 ? media : null,

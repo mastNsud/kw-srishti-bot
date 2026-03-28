@@ -31,6 +31,8 @@ async function initDB() {
 
     // Create tables
     await pool.query(`
+      CREATE EXTENSION IF NOT EXISTS vector;
+      
       CREATE TABLE IF NOT EXISTS leads (
         id SERIAL PRIMARY KEY,
         session_id TEXT UNIQUE NOT NULL,
@@ -48,17 +50,27 @@ async function initDB() {
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
+      
       CREATE TABLE IF NOT EXISTS sessions (
         id TEXT PRIMARY KEY,
         data TEXT NOT NULL,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
+      
       CREATE TABLE IF NOT EXISTS events (
         id SERIAL PRIMARY KEY,
         session_id TEXT,
         event_type TEXT,
         payload TEXT,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS knowledge_embeddings (
+        id SERIAL PRIMARY KEY,
+        content TEXT NOT NULL,
+        embedding vector(384),
+        metadata JSONB,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
     `);
