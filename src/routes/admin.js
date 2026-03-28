@@ -3,7 +3,21 @@ const { getDB } = require('../db');
 
 const router = express.Router();
 
-// GET /api/admin/leads - Fetch all qualified leads
+// POST /api/admin/login - Authenticate with password
+router.post('/login', (req, res) => {
+  const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) {
+    return res.status(500).json({ ok: false, error: 'ADMIN_PASSWORD not set on server.' });
+  }
+  if (password === adminPassword) {
+    // Issue a simple time-based token (not a full JWT, but sufficient for this use case)
+    const token = Buffer.from(`kw:${Date.now()}`).toString('base64');
+    return res.json({ ok: true, token });
+  }
+  return res.status(401).json({ ok: false, error: 'Invalid password' });
+});
+
 router.get('/leads', async (req, res) => {
   try {
     const db = getDB();
