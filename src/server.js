@@ -21,6 +21,14 @@ app.use(cors({ origin: process.env.ALLOWED_ORIGINS || '*' }));
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
+// Normalize double-slash URLs (e.g. Twilio configured with trailing slash: //api/...)
+app.use((req, res, next) => {
+  if (req.path.includes('//')) {
+    return res.redirect(301, req.path.replace(/\/+/g, '/'));
+  }
+  next();
+});
+
 // Rate limiting
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, message: { error: 'Too many requests' } });
 const chatLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, message: { error: 'Chat rate limit exceeded' } });
