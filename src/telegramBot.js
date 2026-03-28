@@ -57,7 +57,11 @@ function startTelegramBot() {
 
   // Handle errors gracefully
   bot.on('polling_error', (err) => {
-    console.error('Telegram polling error:', err.message);
+    if (err.code === 'EFATAL' || (err.message && err.message.includes('409 Conflict'))) {
+      console.log('⚠️ Telegram polling conflict (expected during zero-downtime deployment). Waiting for old instance to terminate...');
+    } else {
+      console.error('Telegram polling error:', err.message);
+    }
   });
 
   return bot;

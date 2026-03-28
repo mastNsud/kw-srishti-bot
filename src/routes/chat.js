@@ -67,18 +67,32 @@ router.post('/message', async (req, res) => {
 router.post('/start', async (req, res) => {
   const sid = uuidv4();
   const session = await getOrCreateSession(sid);
-  const { meta = {} } = req.body || {};
+  const { meta = {}, intent } = req.body || {};
   session.utm_source = meta.utm_source;
   session.utm_campaign = meta.utm_campaign;
 
   const db = getDB();
   await db.prepare('INSERT INTO events (session_id, event_type, payload) VALUES ($1,$2,$3)')
-    .run(sid, 'session_start', JSON.stringify(meta));
+    .run(sid, 'session_start', JSON.stringify({ meta, intent }));
 
-  res.json({ session_id: sid, step: 0 });
+  let initial_message = 'Hi there! I am Priya, your advisor for KW Srishti. How can I help you today?';
+  
+  // Custom Greetings based on CTA clicked
+  if (intent === 'floorplan') {
+    initial_message = 'We have got multiple options of floor plan. Which would you like to see? Please share your phone number to get the floor plan and expert advise.';
+  } else if (intent === 'brochure') {
+    initial_message = 'We will send the brochure to your WhatsApp number. Please share your phone number to proceed.';
+  } else if (intent === 'visit') {
+    initial_message = 'Please share your phone number so that our sales representative could reach out to you to confirm your free site visit.';
+  } else if (intent === 'welcome') {
+    initial_message = 'Dont worry I am Priya, your chat assistant for KW Srishti. I will explain everything regarding the project. Kindly share your contact number or your Good Name for better explanation.';
+  }
+  
+  // Add greeting to session history
+  session.history.push({ role: 'bot', text: initial_message });
+
+  res.json({ session_id: sid, step: 0, initial_message });
 });
-
-async function upsertLeadLocal(sid, session, req) {
   // Deprecated: logic moved to leadService.js
   await upsertLead(sid, session, req);
 }

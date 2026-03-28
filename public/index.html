@@ -437,17 +437,36 @@ function openChat(){
 }
 function closeChat(){isOpen=false;document.getElementById('chatWin').classList.remove('open')}
 
-async function startChat(){
-  const r=await api('/api/chat/start',{meta:getUTM()});
+async function startChat(intent){
+  const r=await api('/api/chat/start',{meta:getUTM(), intent});
   if(r.session_id){SID=r.session_id;localStorage.setItem('kw_sid',SID);}
-  // Send empty trigger to get greeting
-  await sendMsg('','');
-function triggerHook(type){
-  openChat();
-  if(type==='floorplan') sendMsg('I want to explore the floor plans. What is the process?');
-  if(type==='brochure') sendMsg('I would like to download the brochure and check the project details.');
-  if(type==='visit') sendMsg('I want to schedule a site visit to KW Srishti.');
+  if(r.initial_message) {
+    handleBotResponse({ message: r.initial_message });
+  }
 }
+
+function triggerHook(type){
+  isOpen=true;
+  document.getElementById('chatWin').classList.add('open');
+  document.getElementById('nb').style.display='none';
+  if(!chatStarted){
+    chatStarted=true;
+    startChat(type);
+  } else {
+    if(type==='floorplan') sendMsg('I want to explore the floor plans.');
+    if(type==='brochure') sendMsg('I would like to download the brochure.');
+    if(type==='visit') sendMsg('I want to schedule a site visit.');
+    if(type==='welcome') {/* Do nothing if already opened */}
+  }
+}
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if(!chatStarted && !isOpen) {
+      triggerHook('welcome');
+    }
+  }, 3500); // Popup after 3.5s
+});
 
 async function send(){
   const inp=document.getElementById('chatInp');

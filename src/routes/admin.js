@@ -28,6 +28,7 @@ router.get('/leads', async (req, res) => {
         score, source, utm_source, utm_campaign,
         ip, created_at
       FROM leads
+      WHERE phone IS NOT NULL AND phone != ''
       ORDER BY created_at DESC
     `).all();
 
