@@ -109,20 +109,26 @@ async function askAI(session, userInput, context = "") {
   
   const contextData = relevantSections.length > 0 ? relevantSections.join('\n\n') : KNOWLEDGE_SEGMENTS.all;
 
-  const systemPrompt = `You are Priya, a Senior Sales Advisor for KW Srishti.
-PROJECT CONTEXT:
+  const systemPrompt = `You are Priya, a friendly, professional, and helpful Senior Sales Advisor for KW Srishti (by KW Group).
+KW Srishti is a luxury residential project in NH-58, Raj Nagar Extension, Ghaziabad.
+
+GOAL: Converse naturally with the user while subtly guiding them to provide real estate lead qualification details.
+
+CURRENT DATA (DO NOT MIRROR OR ECHO THIS):
+${JSON.stringify(collected, null, 2)}
+
+STRICT RULES:
+1. NEVER summarize or list out the fields you know (e.g., do not say "Name: John").
+2. Answer the user's question first using the PROJECT KNOWLEDGE below, then gracefully nudge for *just one* missing detail.
+3. Keep your response under 3 sentences. Be warm and concise.
+4. **CRITICAL TARGET**: You are currently trying to get their: ${nextTarget ? nextTarget.label : 'visit'}. You MUST end your message by asking a natural question to get this information. 
+   - Examples: "May I have your phone number to share the brochure on WhatsApp?", "What is your good name?"
+   - Do not ask for multiple things at once. Do not ask for formal quotes.
+5. If the user asks for prices not in the knowledge, say "Our sales team can provide a precise quote for that specific unit."
+6. Provide action buttons where appropriate using [BUTTON: Label]. Examples: [BUTTON: Download Brochure], [BUTTON: Book Site Visit].
+
+PROJECT KNOWLEDGE:
 ${contextData || KNOWLEDGE_SEGMENTS.default}
-
-USER PROFILE: ${JSON.stringify(collected)}
-
-YOUR MISSION:
-1. Answer queries accurately using PROJECT CONTEXT.
-2. If info is missing, nudge for: ${nextTarget ? nextTarget.label : 'visit'}.
-3. Keep responses warm, professional and concise (under 3 sentences).
-4. Use [BUTTON: Label] for quick actions. Examples: [BUTTON: Download Brochure], [BUTTON: Book Site Visit].
-5. IMPORTANT: DO NOT hallucinates prices. If not in context, ask them to "Download Brochure" or "Connect with Sales".
-6. NO SUMMARIES: NEVER output a list of fields like "Name: [Value]".
-7. PRIORITY: Once you have the name, prioritize getting the Phone Number.
 
 USER INPUT: "${userInput}"`;
 
@@ -344,7 +350,8 @@ async function buildBotResponse(session, userInput, req) {
   const intents = {
     visuals: /photo|image|view|floor|plan|map|look|see|inside|exterior/i.test(lowerInput),
     brochure: /brochure|pdf|document|details/i.test(lowerInput),
-    budget: /price|cost|budget|amount|worth/i.test(lowerInput)
+    budget: /price|cost|budget|amount|worth/i.test(lowerInput),
+    unit: /bhk|penthouse|flat|apartment|size/i.test(lowerInput)
   };
 
   let aiResult = await askAI(session, userInput || "How can I help you today?", context);
@@ -379,7 +386,10 @@ async function buildBotResponse(session, userInput, req) {
   else if (type.includes('3BHK') || type.includes('3 BHK')) assetKey = '3BHK';
   else if (type.includes('PENTHOUSE')) assetKey = 'PENTHOUSE';
 
-  if (assetKey && PROPERTY_ASSETS[assetKey]) {
+  // Only attach cards or media if the user showed interest in units/visuals, OR if we don't have their name yet (to hook them)
+  const shouldShowMedia = intents.visuals || intents.unit || (assetKey && !session.leadData.name);
+
+  if (assetKey && PROPERTY_ASSETS[assetKey] && shouldShowMedia) {
     const asset = PROPERTY_ASSETS[assetKey];
     const pubId = mapLocalToPublicId(asset.image);
     const optimizedCardUrl = getOptimizedUrl(pubId, { card: true }) || asset.image;
@@ -389,7 +399,7 @@ async function buildBotResponse(session, userInput, req) {
       image: optimizedCardUrl
     });
 
-    // Only attach floor plan if explicitly requested (Intent: Visuals) OR if we are specifically showing a unit
+    // Only attach floor plan if explicitly requested (Intent: Visuals)
     if (intents.visuals) {
       const fpMap = { '1BHK': 'fp_1bhk.png', '2BHK': 'fp_2bhk.png', '3BHK': 'fp_3bhk.png', 'PENTHOUSE': 'fp_ph.png' };
       const fpBase = assetKey.split(' ')[0];
