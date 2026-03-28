@@ -250,15 +250,15 @@ async function api(path, opts = {}) {
 }
 
 async function loadStats() {
-  const s = await api('/api/leads/stats');
-  document.getElementById('sTotal').textContent = s.total || 0;
+  const s = await api('/api/admin/stats');
+  // Handle both array (old admin) and object (leads.js) formats
+  const total = Array.isArray(s) ? s.reduce((sum, val) => sum + parseInt(val.total || 0), 0) : (s.total || 0);
+  document.getElementById('sTotal').textContent = total;
   document.getElementById('sToday').textContent = s.today || 0;
   document.getElementById('sHot').textContent = s.hot || 0;
 
-  // Render mini charts
-  renderBar('chartType', s.byType || [], 'apartment_type');
-  renderBar('chartBudget', s.byBudget || [], 'budget');
-  renderBar('chartTimeline', s.byTimeline || [], 'timeline');
+  const typeData = Array.isArray(s) ? s.map(v => ({ apartment_type: v.source, c: v.total })) : (s.byType || []);
+  renderBar('chartType', typeData, 'apartment_type');
 }
 
 function renderBar(id, data, key) {
