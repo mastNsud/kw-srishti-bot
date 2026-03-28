@@ -78,16 +78,13 @@ const PROPERTY_ASSETS = {
   }
 };
 
-// ── AGENDA (Real Estate Industry) ──
+// ── AGENDA (Core Lead Qualification) ──
 const AGENDA = [
-  { key: 'name', label: 'Good Name', description: 'User name' },
-  { key: 'apartment_type', label: 'Apartment Type', description: '1/2/3 BHK or Penthouse' },
-  { key: 'purpose', label: 'Purpose', description: 'Self-occupation or Investment' },
+  { key: 'name', label: 'Name', description: 'User name' },
+  { key: 'phone', label: 'Phone Number', description: '10-digit mobile number' },
+  { key: 'apartment_type', label: 'Unit', description: '1/2/3 BHK or Penthouse' },
   { key: 'budget', label: 'Budget', description: 'Approximate budget range' },
-  { key: 'timeline', label: 'Timeline', description: 'Buying timeline' },
-  { key: 'location', label: 'Current Location', description: 'Where do they stay currently?' },
-  { key: 'language', label: 'Preferred Language', description: 'English/Hindi/etc.' },
-  { key: 'phone', label: 'Mobile Number', description: '10-digit contact' }
+  { key: 'timeline', label: 'Timeline', description: 'Buying timeline' }
 ];
 
 // ── AI ENGINE via Hugging Face Router ──
@@ -114,29 +111,20 @@ async function askAI(session, userInput) {
 KW Srishti is a luxury residential project in NH-58, Raj Nagar Extension, Ghaziabad.
 
 GOAL: Converse naturally with the user while subtly guiding them to provide real estate lead qualification details.
-AGENDA (Collect these gracefully): 
-${AGENDA.map(a => `- ${a.label} (${a.key})`).join('\n')}
+AGENDA (Internal Only): Name, Phone, Unit, Budget, Timeline.
 
-CURRENT DATA COLLECTED:
+CURRENT DATA (DO NOT MIRROR OR ECHO THIS):
 ${JSON.stringify(collected, null, 2)}
 
-NEXT TARGET: ${nextTarget ? nextTarget.label : 'None (All collected)'}
+STRICT RULES:
+1. **NO SUMMARIES**: NEVER output a list of fields like "Good Name: [Value]". Never summarize what you know or what is missing.
+2. **BE CONCISE**: Keep your response under 60 words. Be warm but brief.
+3. **HUMAN TONE**: Talk like a real person. If you know the user's name, use it naturally (e.g., "Right, Rahul! We actually have...").
+4. **NUDGE FOR ONE**: If info is missing, answer the user's question first, then gracefully nudge for *just one* missing detail at a turn.
+5. **NO METADATA**: Do not reveal internal labels (labels like "Apartment Type" or "Agenda").
+6. **PHONE**: Once you have the name, prioritize getting the Phone Number for sharing brochures on WhatsApp.
 
-INSTRUCTIONS:
-1. Be warm, human, and conversational. Don't sound like a robot asking for data.
-2. USE ONLY THE PROJECT KNOWLEDGE BELOW for technical specs, pricing, and project details. 
-3. **PERSONALIZATION (CRITICAL)**:
-   - If you know the user's name from CURRENT DATA, you MUST use their first name in your response (e.g., "Yes, Rahul, we have...").
-   - If you know their location, highlight how convenient KW Srishti is for them.
-   - Try to infer demographics to recommend 2BHK vs 3BHK.
-4. **LEAD NUDGING (CRITICAL)**:
-   - DO NOT BLOCK the user from getting answers. Answer their queries regarding floor plans, brochures, or site visits.
-   - HOWEVER, until a phone number is provided, ALWAYS gently nudge them to share their WhatsApp number at the end of your response for a better explanation or to send documents.
-5. If they give a phone number, tell them: "Excellent! Our consultant will call you shortly with the best deals! ✨"
-6. PROVIDE SUGGESTED BUTTONS in this format: [BUTTON: Label]. Max 4 buttons.
-7. **VISUALS**: You can now "show" floor plans and property cards. Keep text under 100 words.
-
-PROJECT KNOWLEDGE (Relevant Context):
+PROJECT KNOWLEDGE:
 ${context}
 
 USER INPUT: "${userInput}"`;
@@ -162,8 +150,7 @@ USER INPUT: "${userInput}"`;
           model: modelId,
           messages: [
             { role: 'system', content: systemPrompt },
-            ...((session.history || []).slice(-6).map(h => ({ role: h.role === 'bot' ? 'assistant' : 'user', content: h.text }))),
-            { role: 'user', content: userInput }
+            ...((session.history || []).slice(-8).map(h => ({ role: h.role === 'bot' ? 'assistant' : 'user', content: h.text })))
           ],
           max_tokens: 300,
           temperature: 0.7
