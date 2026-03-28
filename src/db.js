@@ -62,6 +62,27 @@ async function initDB() {
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Migration: Add missing columns if they don't exist (Railway may have old schema)
+    const columnsToAdd = [
+      ['location', 'TEXT'],
+      ['language', 'TEXT'],
+      ['demographics', 'TEXT'],
+      ['profiling_notes', 'TEXT']
+    ];
+
+    for (const [col, type] of columnsToAdd) {
+      try {
+        await pool.query(`ALTER TABLE leads ADD COLUMN ${col} ${type}`);
+        console.log(`✅ Added missing column: ${col}`);
+      } catch (err) {
+        // Ignore error if column already exists (code 42701 in PG)
+        if (err.code !== '42701') {
+          console.warn(`⚠️ Warning adding column ${col}:`, err.message);
+        }
+      }
+    }
+    
     console.log('✅ Database schema verified/created');
   } catch (err) {
     console.error('❌ Database initialisation error:', err);

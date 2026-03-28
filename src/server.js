@@ -10,6 +10,7 @@ const leadsRouter = require('./routes/leads');
 const whatsappRouter = require('./routes/whatsapp');
 const adminRouter = require('./routes/admin');
 const { startTelegramBot } = require('./telegramBot');
+const { startBackgroundSync } = require('./leadService');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -61,6 +62,7 @@ async function start() {
   app.listen(PORT, () => {
     console.log(`🚀 KW Srishti Bot running on port ${PORT}`);
     startTelegramBot();
+    startBackgroundSync(10); // Run reconciliation every 10 mins
   });
 }
 

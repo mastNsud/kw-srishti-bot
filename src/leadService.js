@@ -111,4 +111,63 @@ async function logChatEvent(sid, role, text, meta = {}) {
   }
 }
 
-module.exports = { upsertLead, logChatEvent };
+/**
+ * Background Reconciliation:
+ * Scans events from the last 15 minutes to recover any missing lead info.
+ */
+async function reconcileLeadsFromEvents() {
+  console.log('🔄 [Reconciliation] Scanning recent events for missed leads...');
+  const db = getDB();
+  const { extractLeadData } = require('./botEngine');
+  const { getOrCreateSession, saveSession } = require('./sessionStore');
+
+  try {
+    // 1. Get unique session IDs from the last 15 minutes of chat activity
+    const recentSessions = await db.prepare(`
+      SELECT DISTINCT session_id 
+      FROM events 
+      WHERE event_type = 'chat_message' 
+      AND created_at > (CURRENT_TIMESTAMP - INTERVAL '15 minutes')
+    `).all();
+
+    if (recentSessions.length === 0) return;
+
+    for (const { session_id } of recentSessions) {
+      // 2. Check if this session already has a "qualified" lead (with phone)
+      const existing = await db.prepare('SELECT phone FROM leads WHERE session_id = $1').get(session_id);
+      
+      if (existing?.phone) continue; // Already captured, skip
+
+      // 3. If missing, attempt to recover from session history
+      const session = await getOrCreateSession(session_id);
+      let foundNewInfo = false;
+
+      for (const msg of session.history) {
+        if (msg.role === 'user') {
+          const before = JSON.stringify(session.leadData);
+          await extractLeadData(msg.text, session.leadData);
+          if (JSON.stringify(session.leadData) !== before) {
+            foundNewInfo = true;
+          }
+        }
+      }
+
+      if (foundNewInfo) {
+        console.log(`✨ [Reconciliation] Recovered data for ${session_id}. Syncing...`);
+        await saveSession(session_id, session);
+        await upsertLead(session_id, session);
+      }
+    }
+  } catch (err) {
+    console.error('❌ [Reconciliation] Error:', err.message);
+  }
+}
+
+function startBackgroundSync(intervalMinutes = 10) {
+  console.log(`🤖 Background Reconciliation started (Every ${intervalMinutes} mins)`);
+  setInterval(reconcileLeadsFromEvents, intervalMinutes * 60 * 1000);
+  // Run once on start
+  setTimeout(reconcileLeadsFromEvents, 10000); 
+}
+
+module.exports = { upsertLead, logChatEvent, startBackgroundSync };
