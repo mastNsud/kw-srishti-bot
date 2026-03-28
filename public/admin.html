@@ -276,7 +276,7 @@ async function loadLeads() {
   const search = document.getElementById('searchInp').value;
   const status = document.getElementById('statusFilter').value;
   const params = new URLSearchParams({ limit: 100, ...(status && { status }), ...(search && { search }) });
-  const d = await api(`/api/leads?${params}`);
+  const d = await api(`/api/admin/leads?${params}`);
   const leads = d.leads || [];
   document.getElementById('leadCount').textContent = `${leads.length} leads`;
 

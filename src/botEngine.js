@@ -199,7 +199,13 @@ async function extractEntitiesAI(text) {
 
   const extractionPrompt = `Extract real estate lead details from this message into a JSON object. 
 Fields: name, phone (10 digits), apartment_type (e.g. 2BHK), budget, purpose (Investment/Self), timeline, location, demographics.
-If a field is not present, set it to null.
+
+STRICT BUDGET RULES:
+- If user says "1 CR", output "1 CR".
+- If user says "90 Lakhs", output "90 Lakhs".
+- NEVER normalize "CR" or "Lakhs" to raw numbers like "1000" or "900000".
+- Keep the original currency units if mentioned.
+
 Only return the JSON. No preamble.
 
 USER MESSAGE: "${text}"`;
@@ -291,10 +297,10 @@ async function extractLeadData(text, collected) {
     console.log(`📱 Regex extracted phone: ${collected.phone}`);
   }
 
-  // Smarter Budget (Lakhs/Crores)
+  // Smarter Budget (Lakhs/Crores) - Regex is often more reliable than small LLMs for units
   const budgetMatch = text.match(/(\d+\.?\d*)\s*(lakh|lac|cr|crore|cr\.)/i);
-  if (budgetMatch && !collected.budget) {
-    collected.budget = budgetMatch[0];
+  if (budgetMatch) {
+    collected.budget = budgetMatch[0].toUpperCase().replace('LAC', 'LAKH');
   }
 
   // Smarter BHK

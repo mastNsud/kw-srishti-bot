@@ -19,44 +19,65 @@ router.post('/login', (req, res) => {
   return res.status(401).json({ ok: false, error: 'Invalid password' });
 });
 
-router.get('/leads', async (req, res) => {
+router.get('/leads', requireAdmin, async (req, res) => {
   try {
+    const { status, search, limit = 100 } = req.query;
     const db = getDB();
-    const leads = await db.prepare(`
-      SELECT 
-        id, name, phone, email, 
-        apartment_type, budget, purpose, timeline, 
-        score, source, utm_source, utm_campaign,
-        ip, created_at
-      FROM leads
+    
+    let query = `
+      SELECT * FROM leads
       WHERE phone IS NOT NULL AND phone != ''
-      ORDER BY created_at DESC
-    `).all();
+    `;
+    const params = [];
 
-    res.json({
-      count: leads.length,
-      leads: leads
-    });
+    if (status && status !== 'All Status') {
+      params.push(status);
+      query += ` AND status = $${params.length}`;
+    }
+    if (search) {
+      params.push(`%${search}%`);
+      const idx = params.length;
+      query += ` AND (name ILIKE $${idx} OR phone ILIKE $${idx} OR email ILIKE $${idx})`;
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1}`;
+    params.push(parseInt(limit));
+
+    const leads = await db.prepare(query).all(...params);
+    res.json({ leads });
   } catch (err) {
-    console.error('❌ Admin API Error:', err.message);
+    console.error('❌ Admin Leads API Error:', err.message);
     res.status(500).json({ error: 'Failed to fetch leads' });
   }
 });
 
 // GET /api/admin/stats - Basic summary
-router.get('/stats', async (req, res) => {
+router.get('/stats', requireAdmin, async (req, res) => {
   try {
     const db = getDB();
-    const stats = await db.prepare(`
+    // PostgreSQL compatible stats check
+    const overall = await db.prepare(`
       SELECT 
-        source, 
-        COUNT(*) as total,
-        AVG(score) as avg_score
+        COUNT(*)::int as total,
+        COUNT(CASE WHEN created_at::date = CURRENT_DATE THEN 1 END)::int as today,
+        COUNT(CASE WHEN score >= 70 THEN 1 END)::int as hot,
+        ROUND(AVG(score), 1) as avg_score
       FROM leads
-      GROUP BY source
+      WHERE phone IS NOT NULL AND phone != ''
+    `).get();
+
+    const byType = await db.prepare(`
+      SELECT apartment_type, COUNT(*)::int as c 
+      FROM leads 
+      WHERE apartment_type IS NOT NULL AND apartment_type != ''
+      GROUP BY apartment_type
+      ORDER BY c DESC LIMIT 5
     `).all();
 
-    res.json(stats);
+    res.json({
+      ...overall,
+      byType
+    });
   } catch (err) {
     console.error('❌ Admin Stats Error:', err.message);
     res.status(500).json({ error: 'Failed to fetch stats' });
