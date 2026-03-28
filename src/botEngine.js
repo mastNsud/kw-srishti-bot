@@ -205,8 +205,9 @@ Fields: name, phone, apartment_type, budget, purpose, timeline, location, demogr
 
 CRITICAL RULES:
 1. If a field is NOT explicitly mentioned in the USER MESSAGE, you MUST return null for that field. DO NOT guess or hallucinate.
-2. For budget: Keep original units (e.g., if user says "90 Lakhs" output "90 Lakhs"). Do not normalize to numbers.
+2. For budget: Keep original units (e.g., if user says "90 Lakhs" output "90 Lakhs").
 3. For purpose: Only output "Investment" or "Self" if explicitly stated. Otherwise, null.
+4. NEVER extract 10-digit phone numbers as budgets. If a number is 10 digits long, it is a phone number, NOT a budget.
 
 Only return the JSON. No preamble.
 

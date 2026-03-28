@@ -17,7 +17,7 @@ async function generateEmbedding(text) {
 
   try {
     const response = await fetch(
-      `https://api-inference.huggingface.co/pipeline/feature-extraction/${EMBEDDING_MODEL}`,
+      `https://router.huggingface.co/hf-inference/pipeline/feature-extraction/${EMBEDDING_MODEL}`,
       {
         method: 'POST',
         headers: {
