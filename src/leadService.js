@@ -5,13 +5,18 @@ async function upsertLead(sid, session, req = {}) {
   const d = session.leadData || {};
   
   // Only storage if we have at least a phone or name
-  if (!d.phone && !d.name) return;
+  if (!d.phone && !d.name) {
+    console.log(`ℹ️ Skipping upsert for ${sid} - no phone or name yet.`);
+    return;
+  }
 
   const score = calcScore(d);
   const db = getDB();
   
   // Determine source
   const source = session.source || (sid.startsWith('tg_') ? 'telegram' : 'website');
+
+  console.log(`💾 Persisting Lead [${sid}]:`, JSON.stringify({ name: d.name, phone: d.phone, score }));
 
   try {
     await db.prepare(`
@@ -59,7 +64,7 @@ async function upsertLead(sid, session, req = {}) {
       d.profiling_notes || null,
       JSON.stringify(session.history || [])
     );
-    console.log(`✅ Lead updated [${source}]: ${d.name || 'Anonymous'} (Score: ${score})`);
+    console.log(`✅ Lead successfully updated in DB: ${d.name || 'Anonymous'}`);
     
     // Alert sales team if lead is high-intent (has phone)
     if (d.phone) {
@@ -97,9 +102,9 @@ async function logChatEvent(sid, role, text, meta = {}) {
     await db.prepare('INSERT INTO events (session_id, event_type, payload) VALUES ($1,$2,$3)')
       .run(sid, 'chat_message', JSON.stringify({ role, text, ...meta }));
     
-    // Periodically update the full conversation transcript in the leads table
-    await db.prepare('UPDATE leads SET conversation = conversation || $2 || \'\n\' WHERE session_id = $1')
-      .run(sid, `${role.toUpperCase()}: ${text}`);
+    // Note: We no longer update the 'leads' table here as it's redundant and 
+    // potentially overwrites rich history with plain text. 
+    // UpsertLead (called in chat.js) handles full history sync.
 
   } catch (err) {
     console.error('❌ Error logging chat event:', err.message);

@@ -296,12 +296,12 @@ async function extractLeadData(text, collected) {
   }
 
   // 3. Regex Fallback (Safety Net)
-  // Robust phone regex: detects 10 digits, optionally preceded by +91 or 0, and handles spaces/dashes
-  const phoneMatch = text.match(/(?:\+91|0)?[6-9]\d{9}/) || text.replace(/[\s-]/g, '').match(/[6-9]\d{9}/);
+  // Smarter regex: finds 10 digits starting with 6-9, optionally preceded by +91 or 0
+  const normalizedText = text.replace(/[\s-]/g, '');
+  const phoneMatch = normalizedText.match(/(?:\+91|0)?([6-9]\d{9})(?!\d)/);
   if (phoneMatch && !collected.phone) {
-    let num = phoneMatch[0].replace(/[\s-]/g, '');
-    if (num.length > 10) num = num.slice(-10); // Keep last 10 digits
-    collected.phone = num;
+    collected.phone = phoneMatch[1]; // Capture the 10-digit group specifically
+    console.log(`📱 Regex extracted phone: ${collected.phone}`);
   }
 
   // Smarter Budget (Lakhs/Crores)
@@ -343,6 +343,7 @@ async function buildBotResponse(session, userInput, req) {
   if (userInput) {
     session.history.push({ role: 'user', text: userInput, ts: Date.now() });
     await extractLeadData(userInput, session.leadData);
+    console.log('📝 Current Lead Data state:', JSON.stringify(session.leadData));
   }
 
   let aiResult = await askAI(session, userInput || "How can I help you today?");
