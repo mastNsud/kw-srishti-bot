@@ -93,9 +93,4 @@ router.post('/start', async (req, res) => {
 
   res.json({ session_id: sid, step: 0, initial_message });
 });
-  // Deprecated: logic moved to leadService.js
-  await upsertLead(sid, session, req);
-}
-
-
 module.exports = router;
