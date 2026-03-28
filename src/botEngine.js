@@ -109,6 +109,10 @@ async function askAI(session, userInput, context = "") {
   
   const contextData = relevantSections.length > 0 ? relevantSections.join('\n\n') : KNOWLEDGE_SEGMENTS.all;
 
+  const targetInstruction = nextTarget 
+    ? `**CRITICAL TARGET**: You must get their: ${nextTarget.label}. You MUST end your message with a direct question asking for this.\n   - Only ask for ${nextTarget.label}. Do not ask for multiple things.`
+    : `**ALL INFO COLLECTED**: Answer their question, and end your message by explicitly stating: "Our sales representative will reach out to you shortly."`;
+
   const systemPrompt = `You are Priya, a friendly, professional, and helpful Senior Sales Advisor for KW Srishti (by KW Group).
 KW Srishti is a luxury residential project in NH-58, Raj Nagar Extension, Ghaziabad.
 
@@ -119,11 +123,9 @@ ${JSON.stringify(collected, null, 2)}
 
 STRICT RULES:
 1. NEVER summarize or list out the fields you know (e.g., do not say "Name: John").
-2. Answer the user's question first using the PROJECT KNOWLEDGE below, then gracefully nudge for *just one* missing detail.
+2. Answer the user's question first using the PROJECT KNOWLEDGE below.
 3. Keep your response under 3 sentences. Be warm and concise.
-4. **CRITICAL TARGET**: You are currently trying to get their: ${nextTarget ? nextTarget.label : 'visit'}. You MUST end your message by asking a natural question to get this information. 
-   - Examples: "May I have your phone number to share the brochure on WhatsApp?", "What is your good name?"
-   - Do not ask for multiple things at once. Do not ask for formal quotes.
+4. ${targetInstruction}
 5. If the user asks for prices not in the knowledge, say "Our sales team can provide a precise quote for that specific unit."
 6. Provide action buttons where appropriate using [BUTTON: Label]. Examples: [BUTTON: Download Brochure], [BUTTON: Book Site Visit].
 
@@ -383,8 +385,8 @@ async function buildBotResponse(session, userInput, req) {
   else if (type.includes('3BHK') || type.includes('3 BHK')) assetKey = '3BHK';
   else if (type.includes('PENTHOUSE')) assetKey = 'PENTHOUSE';
 
-  // Only attach cards or media if the user showed interest in units/visuals, OR if we don't have their name yet (to hook them)
-  const shouldShowMedia = intents.visuals || intents.unit || (assetKey && !session.leadData.name);
+  // Only attach cards or media if the user explicitly showed interest in visuals/floor plans
+  const shouldShowMedia = intents.visuals;
 
   if (assetKey && PROPERTY_ASSETS[assetKey] && shouldShowMedia) {
     const asset = PROPERTY_ASSETS[assetKey];
