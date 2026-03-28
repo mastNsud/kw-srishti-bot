@@ -296,8 +296,13 @@ async function extractLeadData(text, collected) {
   }
 
   // 3. Regex Fallback (Safety Net)
-  const phoneMatch = text.match(/\d{10}/);
-  if (phoneMatch && !collected.phone) collected.phone = phoneMatch[0];
+  // Robust phone regex: detects 10 digits, optionally preceded by +91 or 0, and handles spaces/dashes
+  const phoneMatch = text.match(/(?:\+91|0)?[6-9]\d{9}/) || text.replace(/[\s-]/g, '').match(/[6-9]\d{9}/);
+  if (phoneMatch && !collected.phone) {
+    let num = phoneMatch[0].replace(/[\s-]/g, '');
+    if (num.length > 10) num = num.slice(-10); // Keep last 10 digits
+    collected.phone = num;
+  }
 
   // Smarter Budget (Lakhs/Crores)
   const budgetMatch = text.match(/(\d+\.?\d*)\s*(lakh|lac|cr|crore|cr\.)/i);
