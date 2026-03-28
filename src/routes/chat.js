@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { getDB } = require('../db');
 const { getOrCreateSession, saveSession } = require('../sessionStore');
 const { buildBotResponse } = require('../botEngine');
+const { upsertLead, logChatEvent } = require('../leadService');
 
 const router = express.Router();
 
@@ -11,28 +12,48 @@ router.post('/message', async (req, res) => {
   try {
     const { session_id, message, quick_reply, meta = {} } = req.body;
     const sid = session_id || uuidv4();
-    const session = getOrCreateSession(sid);
+    const session = await getOrCreateSession(sid);
 
     // Track UTM on first message
     if (meta.utm_source && !session.utm_source) {
       session.utm_source = meta.utm_source;
       session.utm_campaign = meta.utm_campaign;
-      session.source = meta.source || 'website';
     }
+    session.source = meta.source || 'website';
 
     // Log event
     const db = getDB();
-    db.prepare('INSERT INTO events (session_id, event_type, payload) VALUES (?,?,?)')
+    await db.prepare('INSERT INTO events (session_id, event_type, payload) VALUES ($1,$2,$3)')
       .run(sid, 'message', JSON.stringify({ message, quick_reply }));
 
     const userInput = quick_reply || message || '';
+    
+    // IP-based Geocoding (First-party enrichment on website)
+    if (session.source === 'website' && !session.leadData?.location && req.ip && req.ip !== '::1' && req.ip !== '127.0.0.1') {
+      try {
+        const geoRes = await fetch(`http://ip-api.com/json/${req.ip}?fields=status,city,regionName,country`);
+        const geoData = await geoRes.json();
+        if (geoData.status === 'success') {
+          session.leadData = session.leadData || {};
+          session.leadData.location = `${geoData.city}, ${geoData.regionName}`;
+          console.log(`📍 Geocoded lead to: ${session.leadData.location}`);
+        }
+      } catch (err) {
+        console.warn('⚠️ Geocoding failed:', err.message);
+      }
+    }
+
     const result = await buildBotResponse(session, userInput, req);
 
-    saveSession(sid, session);
+    // Log Chat Events
+    await logChatEvent(sid, 'user', userInput, { source: session.source });
+    await logChatEvent(sid, 'bot', result.message, { source: session.source });
+
+    await saveSession(sid, session);
 
     // If lead data is complete, upsert to leads table
-    if (session.leadData?.phone) {
-      upsertLead(sid, session, req);
+    if (session.leadData?.phone || session.leadData?.name) {
+      await upsertLead(sid, session, req);
     }
 
     res.json({ session_id: sid, ...result });
@@ -43,51 +64,24 @@ router.post('/message', async (req, res) => {
 });
 
 // POST /api/chat/start
-router.post('/start', (req, res) => {
+router.post('/start', async (req, res) => {
   const sid = uuidv4();
-  const session = getOrCreateSession(sid);
+  const session = await getOrCreateSession(sid);
   const { meta = {} } = req.body || {};
   session.utm_source = meta.utm_source;
   session.utm_campaign = meta.utm_campaign;
 
   const db = getDB();
-  db.prepare('INSERT INTO events (session_id, event_type, payload) VALUES (?,?,?)')
+  await db.prepare('INSERT INTO events (session_id, event_type, payload) VALUES ($1,$2,$3)')
     .run(sid, 'session_start', JSON.stringify(meta));
 
   res.json({ session_id: sid, step: 0 });
 });
 
-function upsertLead(sid, session, req) {
-  const d = session.leadData;
-  const score = calcScore(d);
-  const db = getDB();
-  db.prepare(`
-    INSERT INTO leads (session_id, name, phone, email, apartment_type, budget, purpose, timeline, score, utm_source, utm_campaign, ip, conversation)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-    ON CONFLICT(session_id) DO UPDATE SET
-      name=excluded.name, phone=excluded.phone, email=excluded.email,
-      apartment_type=excluded.apartment_type, budget=excluded.budget,
-      purpose=excluded.purpose, timeline=excluded.timeline,
-      score=excluded.score, conversation=excluded.conversation,
-      updated_at=CURRENT_TIMESTAMP
-  `).run(
-    sid, d.name, d.phone, d.email || null,
-    d.apartment_type, d.budget, d.purpose, d.timeline,
-    score, session.utm_source, session.utm_campaign,
-    req.ip, JSON.stringify(session.history || [])
-  );
+async function upsertLeadLocal(sid, session, req) {
+  // Deprecated: logic moved to leadService.js
+  await upsertLead(sid, session, req);
 }
 
-function calcScore(d) {
-  let score = 0;
-  if (d.name) score += 10;
-  if (d.phone) score += 25;
-  if (d.email) score += 15;
-  if (['Within 1 month', '1–3 months'].includes(d.timeline)) score += 20;
-  if (['3 BHK', 'Penthouse / 4 BHK'].includes(d.apartment_type)) score += 10;
-  if (d.budget === '₹90 Lakh+') score += 10;
-  if (d.purpose === 'Self-occupation') score += 10;
-  return Math.min(score, 100);
-}
 
 module.exports = router;

@@ -1,113 +1,101 @@
-const initSqlJs = require('sql.js');
-const path = require('path');
-const fs = require('fs');
+const { Pool } = require('pg');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../data/leads.db');
-let sqlDb;
+let pool;
 
-// ─── Persist DB to disk ───────────────────────────────────────────────────────
-function saveDB() {
-  try {
-    const data = sqlDb.export();
-    fs.writeFileSync(DB_PATH, Buffer.from(data));
-  } catch (e) {
-    console.error('DB save error:', e);
-  }
-}
-
-// ─── Compatibility shim: mirrors the better-sqlite3 API ──────────────────────
-class Statement {
-  constructor(sql) {
-    this._sql = sql;
-  }
-
-  run(...args) {
-    const params = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
-    sqlDb.run(this._sql, params);
-    saveDB();
-    const res = sqlDb.exec('SELECT last_insert_rowid() as id');
-    return { lastInsertRowid: res[0] ? res[0].values[0][0] : null };
-  }
-
-  get(...args) {
-    const params = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
-    const stmt = sqlDb.prepare(this._sql);
-    stmt.bind(params);
-    const exists = stmt.step();
-    const result = exists ? stmt.getAsObject() : undefined;
-    stmt.free();
-    return result;
-  }
-
-  all(...args) {
-    const params = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
-    const stmt = sqlDb.prepare(this._sql);
-    stmt.bind(params);
-    const rows = [];
-    while (stmt.step()) rows.push(stmt.getAsObject());
-    stmt.free();
-    return rows;
-  }
-}
-
-class DBWrapper {
-  prepare(sql) { return new Statement(sql); }
-  // sql.js uses exec() for multi-statement SQL strings
-  exec(sql)    { sqlDb.exec(sql); saveDB(); }
-}
-
-const dbWrapper = new DBWrapper();
-
-// ─── Initialise ───────────────────────────────────────────────────────────────
 async function initDB() {
-  const SQL = await initSqlJs();
-
-  const dbDir = path.dirname(DB_PATH);
-  if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
-
-  // Load existing DB file or create fresh one
-  if (fs.existsSync(DB_PATH)) {
-    sqlDb = new SQL.Database(fs.readFileSync(DB_PATH));
-  } else {
-    sqlDb = new SQL.Database();
+  let connectionString = process.env.DATABASE_URL;
+  
+  if (!connectionString) {
+    console.warn('⚠️ DATABASE_URL not set. Falling back to local SQLite for testing.');
+    // Simple mock/stub for SQLite if needed, but for now just prevent exit
+    pool = {
+      query: async (text, params) => {
+        console.log('📝 [SQLite Mock] Query:', text);
+        return { rows: [] };
+      },
+      connect: async () => ({ release: () => {} })
+    };
+    return;
   }
 
-  // sql.js exec() handles multiple statements separated by semicolons
-  sqlDb.exec(`
-    CREATE TABLE IF NOT EXISTS leads (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      session_id TEXT UNIQUE NOT NULL,
-      name TEXT, phone TEXT, email TEXT,
-      apartment_type TEXT, budget TEXT,
-      purpose TEXT, timeline TEXT,
-      score INTEGER DEFAULT 0,
-      status TEXT DEFAULT 'new',
-      source TEXT DEFAULT 'website',
-      utm_source TEXT, utm_campaign TEXT,
-      ip TEXT, user_agent TEXT,
-      conversation TEXT, notes TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE IF NOT EXISTS sessions (
-      id TEXT PRIMARY KEY,
-      data TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE IF NOT EXISTS events (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      session_id TEXT,
-      event_type TEXT,
-      payload TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
+  pool = new Pool({
+    connectionString,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  });
 
-  saveDB();
-  console.log('✅ Database initialised');
+  try {
+    // Test the connection
+    const client = await pool.connect();
+    console.log('✅ Connected to PostgreSQL');
+    client.release();
+
+    // Create tables
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS leads (
+        id SERIAL PRIMARY KEY,
+        session_id TEXT UNIQUE NOT NULL,
+        name TEXT, phone TEXT, email TEXT,
+        apartment_type TEXT, budget TEXT,
+        purpose TEXT, timeline TEXT,
+        score INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'new',
+        source TEXT DEFAULT 'website',
+        utm_source TEXT, utm_campaign TEXT,
+        ip TEXT, user_agent TEXT,
+        location TEXT, language TEXT, 
+        demographics TEXT, profiling_notes TEXT,
+        conversation TEXT, notes TEXT,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        data TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        session_id TEXT,
+        event_type TEXT,
+        payload TEXT,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Database schema verified/created');
+  } catch (err) {
+    console.error('❌ Database initialisation error:', err);
+    process.exit(1);
+  }
 }
 
-function getDB() { return dbWrapper; }
+const dbWrapper = {
+  // Adaptation layer to keep some similarity but return promises
+  query: (text, params) => pool.query(text, params),
+  
+  // Shim for the old 'prepare' API style but async
+  prepare: (sql) => ({
+    get: async (...args) => {
+      const params = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
+      const res = await pool.query(sql, params);
+      return res.rows[0];
+    },
+    all: async (...args) => {
+      const params = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
+      const res = await pool.query(sql, params);
+      return res.rows;
+    },
+    run: async (...args) => {
+      const params = args.length === 1 && Array.isArray(args[0]) ? args[0] : args;
+      const res = await pool.query(sql, params);
+      return { lastInsertRowid: res.rows[0] ? res.rows[0].id : null };
+    }
+  })
+};
+
+function getDB() {
+  if (!pool) throw new Error('DB not initialised. Call initDB() first.');
+  return dbWrapper;
+}
 
 module.exports = { initDB, getDB };
