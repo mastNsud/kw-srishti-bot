@@ -205,14 +205,12 @@ footer{background:#080807;border-top:1px solid rgba(201,168,76,.1);padding:3rem 
     <div class="badge">✦ KW Group · For Touching Heights</div>
     <h1>Luxury within<br><em>your Reach</em></h1>
     <p class="hero-sub">Redefining residential living at Raj Nagar Extension, Ghaziabad</p>
-    <p class="hero-addr">NH-58 · Raj Nagar Extn. · Ghaziabad · GDA Approved · Freehold</p>
     <div class="hero-ctas">
-      <a href="#plans" class="btn-gold">Explore Floor Plans</a>
+      <button class="btn-gold" onclick="triggerHook('floorplan')">Explore Floor Plans</button>
       <button class="btn-ghost" onclick="triggerHook('brochure')">Download Brochure</button>
       <button class="btn-ghost" onclick="triggerHook('visit')">Book a Site Visit</button>
-      <a href="https://wa.me/919003068325?text=I%20want%20to%20talk%20to%20a%20property%20expert%20about%20KW%20Srishti." class="btn-ghost" target="_blank" style="border-color:#25D366;color:#25D366"><i class="fab fa-whatsapp"></i> Talk to Expert</a>
+      <a href="https://wa.me/919003068325?text=I%20want%20to%20talk%20to%20a%20property%20expert%20about%20KW%20Srishti." class="btn-ghost" target="_blank" style="border-color:#25D366;color:#25D366"><i class="fab fa-whatsapp"></i> Talk to WhatsApp to know more about the project</a>
     </div>
-    <div class="hero-stats">
       <div><div class="stat-num">80%</div><div class="stat-lbl">Green Area</div></div>
       <div><div class="stat-num">40+</div><div class="stat-lbl">Amenities</div></div>
       <div><div class="stat-num">1–4</div><div class="stat-lbl">BHK Configs</div></div>
@@ -444,15 +442,12 @@ async function startChat(){
   if(r.session_id){SID=r.session_id;localStorage.setItem('kw_sid',SID);}
   // Send empty trigger to get greeting
   await sendMsg('','');
-}
-
 function triggerHook(type){
   openChat();
+  if(type==='floorplan') sendMsg('I want to explore the floor plans. What is the process?');
   if(type==='brochure') sendMsg('I would like to download the brochure and check the project details.');
   if(type==='visit') sendMsg('I want to schedule a site visit to KW Srishti.');
 }
-
-function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
 
 async function send(){
   const inp=document.getElementById('chatInp');
