@@ -132,12 +132,10 @@ ${contextData || KNOWLEDGE_SEGMENTS.default}
 
 USER INPUT: "${userInput}"`;
 
-  // Fallback Chain (Optimized for speed < 8s)
   const models = [
     PRIMARY_MODEL,
     'Qwen/Qwen2.5-1.5B-Instruct',
-    'microsoft/Phi-3.5-mini-instruct',
-    'HuggingFaceH4/zephyr-7b-beta'
+    'microsoft/Phi-3.5-mini-instruct'
   ];
 
   for (const modelId of models) {
@@ -200,14 +198,13 @@ async function extractEntitiesAI(text) {
     return null;
   }
 
-  const extractionPrompt = `Extract real estate lead details from this message into a JSON object. 
-Fields: name, phone (10 digits), apartment_type (e.g. 2BHK), budget, purpose (Investment/Self), timeline, location, demographics.
+const extractionPrompt = `Extract real estate lead details from this message into a JSON object. 
+Fields: name, phone, apartment_type, budget, purpose, timeline, location, demographics.
 
-STRICT BUDGET RULES:
-- If user says "1 CR", output "1 CR".
-- If user says "90 Lakhs", output "90 Lakhs".
-- NEVER normalize "CR" or "Lakhs" to raw numbers like "1000" or "900000".
-- Keep the original currency units if mentioned.
+CRITICAL RULES:
+1. If a field is NOT explicitly mentioned in the USER MESSAGE, you MUST return null for that field. DO NOT guess or hallucinate.
+2. For budget: Keep original units (e.g., if user says "90 Lakhs" output "90 Lakhs"). Do not normalize to numbers.
+3. For purpose: Only output "Investment" or "Self" if explicitly stated. Otherwise, null.
 
 Only return the JSON. No preamble.
 
